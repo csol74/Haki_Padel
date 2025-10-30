@@ -1,0 +1,85 @@
+/* ======== NAVBAR HAKIPADEL ======== */
+.custom-navbar {
+    background-color: #2f4f4f;
+    padding: 0.8rem 1.5rem;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Logo */
+.logo {
+    width: 38px;
+    height: 38px;
+}
+
+.brand-text {
+    color: #fff;
+    font-size: 0.85rem;
+    line-height: 1.1;
+}
+
+/* Enlaces */
+.navbar-nav .nav-link {
+    color: #cce3e1;
+    font-weight: 500;
+    font-size: 1rem;
+    margin: 0 10px;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #00bfa5;
+}
+
+.navbar-nav .nav-link.active {
+    color: #00bfa5;
+    font-weight: 600;
+    border-bottom: 2px solid #00bfa5;
+}
+
+/* Botón notificación */
+.notif-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1.3rem;
+    position: relative;
+}
+
+.notif-badge {
+    width: 9px;
+    height: 9px;
+    background: #ff5252;
+    border-radius: 50%;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+}
+
+/* Perfil circular */
+.profile-btn {
+    width: 38px;
+    height: 38px;
+    background: #00bfa5;
+    color: #fff;
+    border: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.profile-btn:hover {
+    background: #009688;
+}
+
+/* Dropdown */
+.dropdown-menu {
+    border-radius: 12px;
+    font-size: 0.9rem;
+}
+
+.dropdown-item:hover {
+    background-color: #e0f7f4;
+}

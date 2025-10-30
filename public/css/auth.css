@@ -1,0 +1,85 @@
+/* ======== ESTILO REGISTER HAKIPADEL ======== */
+
+.register-page {
+    background: #f3fafc;
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Tarjeta principal */
+.register-card {
+    width: 100%;
+    max-width: 440px;
+}
+
+.card {
+    border-radius: 25px;
+    background: #fff;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+
+.tab {
+    background: none;
+    border: none;
+    font-weight: 600;
+    color: #666;
+    font-size: 0.95rem;
+    transition: color 0.3s, border-color 0.3s;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+}
+
+.tab.active {
+    color: #009688;
+    border-color: #009688;
+}
+
+.tab:hover {
+    color: #009688;
+}
+
+/* Inputs */
+.form-control {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 10px 15px;
+    border: 1px solid #d2d6dc;
+}
+
+.form-control:focus {
+    border-color: #00bfa5;
+    box-shadow: 0 0 0 0.15rem rgba(0, 191, 165, 0.25);
+}
+
+/* Botón */
+.btn-primary {
+    background: linear-gradient(135deg, #00bfa5 0%, #00897b 100%);
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.3s;
+}
+
+.btn-primary:hover {
+    transform: scale(1.03);
+    box-shadow: 0 5px 15px rgba(0, 191, 165, 0.3);
+}
+
+/* Mensajes de error */
+.invalid-feedback strong {
+    font-size: 0.85rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .register-card {
+        max-width: 100%;
+        padding: 0 1rem;
+    }
+}
