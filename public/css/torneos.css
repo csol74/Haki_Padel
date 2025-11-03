@@ -1,0 +1,224 @@
+/* Estilos para Página de Torneos */
+.tournament-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+    height: 100%;
+}
+
+.tournament-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.tournament-header {
+    height: 180px;
+    background: linear-gradient(135deg, #009688 0%, #4DB6AC 100%);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.tournament-icon {
+    font-size: 3rem;
+    opacity: 0.8;
+}
+
+.tournament-status {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-abierto {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.status-en-curso {
+    background-color: #FF9800;
+    color: white;
+}
+
+.status-finalizado {
+    background-color: #9E9E9E;
+    color: white;
+}
+
+.status-cerrado {
+    background-color: #F44336;
+    color: white;
+}
+
+.tournament-category {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 15px;
+    padding: 3px 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #009688;
+}
+
+.tournament-date {
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.date-day {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #009688;
+}
+
+.date-month {
+    font-size: 0.9rem;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.participants-info {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.prize-amount {
+    color: #009688;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.btn-inscribir {
+    background-color: #009688;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-inscribir:hover {
+    background-color: #00796B;
+    transform: translateY(-2px);
+}
+
+.filters-card {
+    background: white;
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.page-title {
+    color: #009688;
+    font-weight: 700;
+    margin-bottom: 2rem;
+}
+
+/* Estilos para Show de Torneo */
+.tournament-hero {
+    background: linear-gradient(135deg, #009688 0%, #4DB6AC 100%);
+    color: white;
+    padding: 3rem 0;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.tournament-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+}
+
+.tournament-hero .container {
+    position: relative;
+    z-index: 1;
+}
+
+.info-card {
+    background: white;
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.participant-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #009688;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    margin-right: 15px;
+}
+
+.breadcrumb-custom {
+    background: white;
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+}
+
+.timeline-item {
+    border-left: 3px solid #009688;
+    padding-left: 20px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.timeline-item::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background: #009688;
+    border-radius: 50%;
+    position: absolute;
+    left: -7px;
+    top: 5px;
+}
+
+.stats-card {
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    margin-bottom: 15px;
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #009688;
+}
+
+.stats-label {
+    font-size: 0.9rem;
+    color: #666;
+    text-transform: uppercase;
+}
