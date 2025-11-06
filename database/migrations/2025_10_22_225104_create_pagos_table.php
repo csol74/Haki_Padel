@@ -10,16 +10,16 @@ return new class extends Migration
     {
         Schema::create('pagos', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('id_usuario');
+            $table->unsignedBigInteger('user_id');
             $table->enum('concepto', ['reserva', 'clase', 'torneo']);
             $table->unsignedBigInteger('id_referencia')->nullable();
             $table->decimal('monto', 10, 2);
             $table->enum('metodo_pago', ['efectivo', 'transferencia', 'tarjeta'])->default('efectivo');
             $table->enum('estado', ['pendiente', 'completado', 'reembolsado'])->default('pendiente');
             $table->timestamps();
-            
-            $table->foreign('id_usuario')->references('id')->on('usuarios')->onDelete('cascade');
-            $table->index('id_usuario');
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->index('user_id');
             $table->index('estado');
         });
     }

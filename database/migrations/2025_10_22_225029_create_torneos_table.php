@@ -21,8 +21,8 @@ return new class extends Migration
             $table->integer('cantidad_max_participantes')->nullable();
             $table->enum('estado', ['planificacion', 'inscripciones_abiertas', 'en_curso', 'finalizado'])->default('planificacion');
             $table->timestamps();
-            
-            $table->foreign('id_organizador')->references('id')->on('usuarios')->onDelete('cascade');
+
+            $table->foreign('id_organizador')->references('id')->on('users')->onDelete('cascade');
             $table->index('estado');
         });
     }

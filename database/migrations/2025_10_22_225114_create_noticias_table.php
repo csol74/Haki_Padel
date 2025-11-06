@@ -15,8 +15,8 @@ return new class extends Migration
             $table->unsignedBigInteger('id_autor');
             $table->enum('estado', ['borrador', 'publicada', 'archivada'])->default('borrador');
             $table->timestamps();
-            
-            $table->foreign('id_autor')->references('id')->on('usuarios')->onDelete('cascade');
+
+            $table->foreign('id_autor')->references('id')->on('users')->onDelete('cascade');
             $table->index('estado');
         });
     }

@@ -10,15 +10,15 @@ return new class extends Migration
     {
         Schema::create('notificaciones', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('id_usuario');
+            $table->unsignedBigInteger('user_id');
             $table->string('titulo', 150);
             $table->text('contenido');
             $table->enum('tipo', ['reserva', 'torneo', 'clase', 'general'])->default('general');
             $table->boolean('leida')->default(false);
             $table->timestamps();
-            
-            $table->foreign('id_usuario')->references('id')->on('usuarios')->onDelete('cascade');
-            $table->index(['id_usuario', 'leida']);
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->index(['user_id', 'leida']);
         });
     }
 

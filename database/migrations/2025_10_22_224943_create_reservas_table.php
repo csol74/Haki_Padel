@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('reservas', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('id_usuario');
+            $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('id_cancha');
             $table->date('fecha');
             $table->time('hora_inicio');
@@ -18,11 +18,11 @@ return new class extends Migration
             $table->enum('estado', ['pendiente', 'confirmada', 'cancelada', 'completada'])->default('pendiente');
             $table->integer('numero_jugadores')->nullable();
             $table->timestamps();
-            
-            $table->foreign('id_usuario')->references('id')->on('usuarios')->onDelete('cascade');
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('id_cancha')->references('id')->on('canchas')->onDelete('cascade');
             $table->unique(['id_cancha', 'fecha', 'hora_inicio']);
-            $table->index(['id_usuario', 'fecha']);
+            $table->index(['user_id', 'fecha']);
             $table->index(['id_cancha', 'fecha']);
             $table->index('estado');
         });

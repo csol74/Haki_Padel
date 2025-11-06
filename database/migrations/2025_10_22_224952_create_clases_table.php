@@ -19,8 +19,8 @@ return new class extends Migration
             $table->decimal('precio', 10, 2)->nullable();
             $table->enum('estado', ['programada', 'cancelada', 'completada'])->default('programada');
             $table->timestamps();
-            
-            $table->foreign('id_entrenador')->references('id')->on('usuarios')->onDelete('cascade');
+
+            $table->foreign('id_entrenador')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('id_cancha')->references('id')->on('canchas')->onDelete('cascade');
             $table->index(['id_entrenador', 'fecha']);
             $table->index(['id_cancha', 'fecha']);

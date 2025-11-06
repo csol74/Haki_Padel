@@ -11,12 +11,12 @@ return new class extends Migration
         Schema::create('inscripciones_clases', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_clase');
-            $table->unsignedBigInteger('id_usuario');
+            $table->unsignedBigInteger('user_id');
             $table->timestamps();
-            
+
             $table->foreign('id_clase')->references('id')->on('clases')->onDelete('cascade');
-            $table->foreign('id_usuario')->references('id')->on('usuarios')->onDelete('cascade');
-            $table->unique(['id_clase', 'id_usuario']);
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->unique(['id_clase', 'user_id']);
         });
     }
 

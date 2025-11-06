@@ -11,13 +11,13 @@ return new class extends Migration
         Schema::create('participantes_torneo', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_torneo');
-            $table->unsignedBigInteger('id_usuario');
+            $table->unsignedBigInteger('user_id');
             $table->enum('estado', ['inscrito', 'confirmado', 'retirado'])->default('inscrito');
             $table->timestamps();
-            
+
             $table->foreign('id_torneo')->references('id')->on('torneos')->onDelete('cascade');
-            $table->foreign('id_usuario')->references('id')->on('usuarios')->onDelete('cascade');
-            $table->unique(['id_torneo', 'id_usuario']);
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->unique(['id_torneo', 'user_id']);
         });
     }
 
