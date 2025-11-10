@@ -5,6 +5,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CanchaController;
 use App\Http\Controllers\ContactoController;
 use App\Http\Controllers\TorneoController;
+use App\Http\Controllers\ProfileController;
 
 Auth::routes();
 
@@ -26,3 +27,7 @@ Route::post('/contacto', [ContactoController::class, 'store'])->name('contacto.s
 Route::get('/torneos', [TorneoController::class, 'index'])->name('torneos.index');
 Route::get('/torneos/{id}', [TorneoController::class, 'show'])->name('torneos.show');
 Route::post('/torneos/inscribir', [TorneoController::class, 'store'])->name('torneos.inscribir');
+
+//Rutas de perfil
+Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
