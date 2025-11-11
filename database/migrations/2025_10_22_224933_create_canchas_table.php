@@ -12,9 +12,9 @@ return new class extends Migration
             $table->id();
             $table->string('nombre', 100);
             $table->integer('numero')->unique();
-            $table->enum('tipo', ['indoor', 'outdoor'])->default('indoor');
+            $table->enum('tipo', ['premium', 'estandar', 'vip'])->default('estandar');
             $table->decimal('precio_hora', 10, 2);
-            $table->enum('estado', ['activa', 'mantenimiento'])->default('activa');
+            $table->enum('estado', ['disponible', 'ocupada','mantenimiento'])->default('disponible');
             $table->timestamps();
             $table->index('estado');
         });

@@ -2,87 +2,71 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cancha;
+use App\Models\Reserva;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class CanchaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
-        $query = DB::table('canchas');
+        $query = Cancha::query();
 
-        // Aplicar filtros
-        if ($request->filled('fecha')) {
-            // Aquí puedes agregar lógica para filtrar por fecha
-        }
-
-        if ($request->filled('hora')) {
-            // Aquí puedes agregar lógica para filtrar por hora
-        }
-
-        if ($request->filled('tipo')) {
+        // Filtros opcionales
+        if ($request->filled('tipo') && $request->tipo !== 'Todas') {
             $query->where('tipo', $request->tipo);
         }
 
-        $canchas = $query->get();
+        $fecha = $request->input('fecha');
+        $hora = $request->input('hora');
 
-        return view('canchas.index', compact('canchas'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        $cancha = DB::table('canchas')->where('id', $id)->first();
-        
-        if (!$cancha) {
-            abort(404);
+        // Si no hay búsqueda (fecha u hora), no mostramos nada todavía
+        if (!$fecha && !$hora) {
+            return view('canchas.index', [
+                'canchas' => collect([]),
+                'mensaje' => 'Por favor selecciona una fecha y hora para buscar canchas disponibles.',
+                'fecha' => null,
+                'hora' => null,
+            ]);
         }
 
-        return view('canchas.show', compact('cancha'));
-    }
+        // Si sí hay búsqueda, traemos las canchas y verificamos disponibilidad
+        $canchas = $query->get();
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+        if ($fecha && $hora) {
+            [$horaInicio, $horaFin] = explode('-', $hora);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+            $canchas->map(function ($cancha) use ($fecha, $horaInicio, $horaFin) {
+                $reserva = Reserva::where('id_cancha', $cancha->id)
+                    ->where('fecha', $fecha)
+                    ->where(function ($q) use ($horaInicio, $horaFin) {
+                        $q->whereBetween('hora_inicio', [$horaInicio, $horaFin])
+                          ->orWhereBetween('hora_fin', [$horaInicio, $horaFin]);
+                    })
+                    ->first();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+                if ($reserva) {
+                    $cancha->estado = 'ocupada';
+                } elseif ($cancha->estado == 'mantenimiento') {
+                    $cancha->estado = 'mantenimiento';
+                } else {
+                    $cancha->estado = 'disponible';
+                }
+
+                return $cancha;
+            });
+        }
+
+        // Mensajes
+        $mensaje = null;
+        if ($canchas->isEmpty()) {
+            $mensaje = 'No hay canchas registradas.';
+        } elseif ($canchas->where('estado', 'disponible')->count() > 0) {
+            $mensaje = '🎾 Hay canchas disponibles para reservar.';
+        } else {
+            $mensaje = '⚠️ No hay canchas disponibles con los filtros seleccionados.';
+        }
+
+        return view('canchas.index', compact('canchas', 'mensaje', 'fecha', 'hora'));
     }
 }

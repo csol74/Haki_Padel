@@ -3,11 +3,22 @@
 @section('styles')
 <link rel="stylesheet" href="{{ asset('css/canchas.css') }}">
 @endsection
+@if(session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif
 
 @section('content')
 <div class="container-fluid p-0" style="background-color:#E8F3F5; min-height:100vh;">
     @include('layouts.navbar')
-    
+
     <div class="container py-4">
         <!-- Breadcrumb -->
         <nav class="breadcrumb-custom">
@@ -96,7 +107,7 @@
                             @php
                                 $horarios = [
                                     '06:00-08:00' => 'Disponible',
-                                    '08:00-10:00' => 'Disponible', 
+                                    '08:00-10:00' => 'Disponible',
                                     '10:00-12:00' => 'Ocupado',
                                     '12:00-14:00' => 'Ocupado',
                                     '14:00-16:00' => 'Disponible',
@@ -105,10 +116,10 @@
                                     '20:00-22:00' => 'Disponible'
                                 ];
                             @endphp
-                            
+
                             @foreach($horarios as $horario => $estado)
                             <div class="col-md-4 col-6">
-                                <div class="time-slot {{ strtolower($estado) == 'disponible' ? 'available' : 'occupied' }}" 
+                                <div class="time-slot {{ strtolower($estado) == 'disponible' ? 'available' : 'occupied' }}"
                                      onclick="{{ strtolower($estado) == 'disponible' ? 'selectTime(this)' : '' }}"
                                      data-horario="{{ $horario }}">
                                     <div class="fw-bold">{{ str_replace('-', ' - ', $horario) }}</div>
@@ -133,7 +144,7 @@
                         <form method="POST" action="{{ route('reservas.store') }}">
                             @csrf
                             <input type="hidden" name="cancha_id" value="{{ $cancha->id }}">
-                            
+
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Fecha</label>
                                 <input type="date" class="form-control" name="fecha" value="{{ date('Y-m-d') }}" required>
@@ -239,38 +250,38 @@
 <script>
     let selectedTimeSlot = null;
     const baseCost = {{ $cancha->precio_hora * 2 }};
-    
+
     function selectTime(element) {
         // Remover selección anterior
         document.querySelectorAll('.time-slot.selected').forEach(slot => {
             slot.classList.remove('selected');
         });
-        
+
         // Agregar selección actual
         element.classList.add('selected');
         selectedTimeSlot = element.getAttribute('data-horario');
-        
+
         // Actualizar campo de horario
         document.getElementById('selectedTime').value = selectedTimeSlot;
     }
-    
+
     // Cálculo de costos adicionales
     function updateCosts() {
         let additionalCost = 0;
-        
+
         if (document.getElementById('coach').checked) additionalCost += 30000;
         if (document.getElementById('recording').checked) additionalCost += 15000;
         if (document.getElementById('refreshments').checked) additionalCost += 20000;
-        
+
         document.getElementById('additionalCosts').textContent = '$' + additionalCost.toLocaleString('es-CO');
         document.getElementById('totalCost').textContent = '$' + (baseCost + additionalCost).toLocaleString('es-CO');
     }
-    
+
     // Agregar listeners para checkboxes
     document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
         checkbox.addEventListener('change', updateCosts);
     });
-    
+
     // Validar formulario
     document.querySelector('form').addEventListener('submit', function(e) {
         if (!selectedTimeSlot) {

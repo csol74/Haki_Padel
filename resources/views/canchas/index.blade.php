@@ -5,6 +5,10 @@
 @endsection
 
 @section('content')
+    @php
+        use Illuminate\Support\Str;
+    @endphp
+
     <div class="container-fluid p-0" style="background-color:#E8F3F5; min-height:100vh;">
         @include('layouts.navbar')
 
@@ -29,32 +33,28 @@
                                 <label class="form-label fw-bold">Hora</label>
                                 <select class="form-select" name="hora">
                                     <option value="">Todas las horas</option>
-                                    <option value="06:00-08:00" {{ request('hora') == '06:00-08:00' ? 'selected' : '' }}>
-                                        06:00 - 08:00</option>
-                                    <option value="08:00-10:00" {{ request('hora') == '08:00-10:00' ? 'selected' : '' }}>
-                                        08:00 - 10:00</option>
-                                    <option value="10:00-12:00" {{ request('hora') == '10:00-12:00' ? 'selected' : '' }}>
-                                        10:00 - 12:00</option>
-                                    <option value="12:00-14:00" {{ request('hora') == '12:00-14:00' ? 'selected' : '' }}>
-                                        12:00 - 14:00</option>
-                                    <option value="14:00-16:00" {{ request('hora') == '14:00-16:00' ? 'selected' : '' }}>
-                                        14:00 - 16:00</option>
-                                    <option value="16:00-18:00" {{ request('hora') == '16:00-18:00' ? 'selected' : '' }}>
-                                        16:00 - 18:00</option>
-                                    <option value="18:00-20:00" {{ request('hora') == '18:00-20:00' ? 'selected' : '' }}>
-                                        18:00 - 20:00</option>
-                                    <option value="20:00-22:00" {{ request('hora') == '20:00-22:00' ? 'selected' : '' }}>
-                                        20:00 - 22:00</option>
+                                    @foreach ([
+                                        '06:00-08:00',
+                                        '08:00-10:00',
+                                        '10:00-12:00',
+                                        '12:00-14:00',
+                                        '14:00-16:00',
+                                        '16:00-18:00',
+                                        '18:00-20:00',
+                                        '20:00-22:00',
+                                    ] as $rango)
+                                        <option value="{{ $rango }}" {{ request('hora') == $rango ? 'selected' : '' }}>
+                                            {{ $rango }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label fw-bold">Tipo</label>
                                 <select class="form-select" name="tipo">
-                                    <option value="">Todas</option>
-                                    <option value="premium" {{ request('tipo') == 'premium' ? 'selected' : '' }}>Premium
-                                    </option>
-                                    <option value="estandar" {{ request('tipo') == 'estandar' ? 'selected' : '' }}>Estándar
-                                    </option>
+                                    <option value="Todas" {{ request('tipo') == 'Todas' ? 'selected' : '' }}>Todas</option>
+                                    <option value="premium" {{ request('tipo') == 'premium' ? 'selected' : '' }}>Premium</option>
+                                    <option value="estandar" {{ request('tipo') == 'estandar' ? 'selected' : '' }}>Estándar</option>
                                     <option value="vip" {{ request('tipo') == 'vip' ? 'selected' : '' }}>VIP</option>
                                 </select>
                             </div>
@@ -68,6 +68,17 @@
                 </div>
             </div>
 
+            <!-- Mensaje de estado -->
+            @if (isset($mensaje))
+                @if (Str::contains($mensaje, '🎾'))
+                    <div class="alert alert-success text-center fw-bold mt-3">{{ $mensaje }}</div>
+                @elseif (Str::contains($mensaje, '⚠️'))
+                    <div class="alert alert-warning text-center fw-bold mt-3">{{ $mensaje }}</div>
+                @else
+                    <div class="alert alert-info text-center fw-bold mt-3">{{ $mensaje }}</div>
+                @endif
+            @endif
+
             <!-- Grid de Canchas -->
             <div class="row g-4">
                 @forelse($canchas as $cancha)
@@ -75,9 +86,11 @@
                         <div class="card card-cancha">
                             <div class="cancha-image">
                                 <div
-                                    class="status-badge status-{{ $cancha->estado == 'activa' ? 'disponible' : 'mantenimiento' }}">
-                                    @if ($cancha->estado == 'activa')
+                                    class="status-badge status-{{ $cancha->estado == 'disponible' ? 'disponible' : ($cancha->estado == 'ocupada' ? 'ocupada' : 'mantenimiento') }}">
+                                    @if ($cancha->estado == 'disponible')
                                         <i class="bi bi-check-circle me-1"></i>Disponible
+                                    @elseif ($cancha->estado == 'ocupada')
+                                        <i class="bi bi-x-circle me-1"></i>Ocupada
                                     @else
                                         <i class="bi bi-tools me-1"></i>Mantenimiento
                                     @endif
@@ -97,17 +110,21 @@
                                     </div>
                                 </div>
 
-
-
-                                @if ($cancha->estado == 'disponible')
-                                    <a href="{{ route('canchas.show', $cancha->id) }}"
-                                        class="btn btn-reservar text-white w-100">
-                                        <i class="bi bi-calendar-check me-1"></i>Reservar Ahora
-                                    </a>
-                                @elseif($cancha->estado == 'ocupada')
+                                <!-- BOTONES SEGÚN ESTADO -->
+                                @if ($cancha->estado === 'disponible')
+                                    <form action="{{ route('reservas.store') }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="cancha_id" value="{{ $cancha->id }}">
+                                        <input type="hidden" name="fecha" value="{{ $fecha }}">
+                                        <input type="hidden" name="horario" value="{{ $hora }}">
+                                        <input type="hidden" name="jugadores" value="4">
+                                        <button type="submit" class="btn btn-success w-100 fw-bold">
+                                            <i class="bi bi-calendar-check me-1"></i>Reservar Ahora
+                                        </button>
+                                    </form>
+                                @elseif($cancha->estado === 'ocupada')
                                     <button class="btn btn-secondary w-100" disabled>
-                                        <i class="bi bi-clock me-1"></i>Ocupada hasta
-                                        {{ $cancha->ocupada_hasta ?? '18:00' }}
+                                        <i class="bi bi-clock me-1"></i>Ocupada
                                     </button>
                                 @else
                                     <button class="btn btn-warning w-100" disabled>
