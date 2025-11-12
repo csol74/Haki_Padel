@@ -6,7 +6,6 @@
 
 @section('content')
 <div class="container-fluid p-0" style="background-color:#E8F3F5; min-height:100vh;">
-    @include('layouts.navbar')
 
     <!-- Hero Section -->
     <div class="contact-hero">
@@ -39,7 +38,7 @@
                                 </div>
                                 <h5 class="fw-bold mb-2">Teléfono</h5>
                                 <p class="mb-2">Llámanos directamente</p>
-                                <a href="tel:+573001234567" class="text-decoration-none fw-bold">+57 300 123 4567</a>
+                                <a href="tel:+573007754028" class="text-decoration-none fw-bold">+57 300 775 4028</a>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -49,7 +48,7 @@
                                 </div>
                                 <h5 class="fw-bold mb-2">WhatsApp</h5>
                                 <p class="mb-2">Respuesta inmediata</p>
-                                <a href="https://wa.me/573001234567" class="text-decoration-none fw-bold">Enviar mensaje</a>
+                                <a href="https://wa.me/573007754028" class="text-decoration-none fw-bold">Enviar mensaje</a>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -59,7 +58,7 @@
                                 </div>
                                 <h5 class="fw-bold mb-2">Email</h5>
                                 <p class="mb-2">Consultas generales</p>
-                                <a href="mailto:info@hakipadel.com" class="text-decoration-none fw-bold">info@hakipadel.com</a>
+                                <a href="mailto:hakipadel@gmail.com" class="text-decoration-none fw-bold">hakipadel@gmail.com</a>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -69,7 +68,7 @@
                                 </div>
                                 <h5 class="fw-bold mb-2">Ubicación</h5>
                                 <p class="mb-2">Visítanos</p>
-                                <span class="fw-bold">Calle 45 #27-85</span>
+                                <span class="fw-bold">Av. 42 #48 - 11, Bucaramanga, Santander</span>
                             </div>
                         </div>
                     </div>
@@ -85,27 +84,13 @@
                 <div class="contact-card card">
                     <div class="card-body p-5">
                         <h3 class="fw-bold mb-4">Envíanos un mensaje</h3>
-                        
-                        @if(session('success'))
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        @endif
-
-                        @if(session('error'))
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        @endif
 
                         <form method="POST" action="{{ route('contacto.store') }}">
                             @csrf
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold">Nombre Completo</label>
-                                    <input type="text" name="nombre" class="form-control @error('nombre') is-invalid @enderror" 
+                                    <input type="text" name="nombre" class="form-control @error('nombre') is-invalid @enderror"
                                            placeholder="Tu nombre completo" value="{{ old('nombre') }}" required>
                                     @error('nombre')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -113,7 +98,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold">Email</label>
-                                    <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
+                                    <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
                                            placeholder="tu@email.com" value="{{ old('email') }}" required>
                                     @error('email')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -121,7 +106,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold">Teléfono (Opcional)</label>
-                                    <input type="tel" name="telefono" class="form-control @error('telefono') is-invalid @enderror" 
+                                    <input type="tel" name="telefono" class="form-control @error('telefono') is-invalid @enderror"
                                            placeholder="+57 300 123 4567" value="{{ old('telefono') }}">
                                     @error('telefono')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -143,7 +128,7 @@
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label fw-bold">Asunto</label>
-                                    <input type="text" name="asunto" class="form-control @error('asunto') is-invalid @enderror" 
+                                    <input type="text" name="asunto" class="form-control @error('asunto') is-invalid @enderror"
                                            placeholder="Breve descripción del tema" value="{{ old('asunto') }}" required>
                                     @error('asunto')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -151,7 +136,7 @@
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label fw-bold">Mensaje</label>
-                                    <textarea name="mensaje" class="form-control @error('mensaje') is-invalid @enderror" rows="5" 
+                                    <textarea name="mensaje" class="form-control @error('mensaje') is-invalid @enderror" rows="5"
                                               placeholder="Cuéntanos en detalle cómo podemos ayudarte..." required>{{ old('mensaje') }}</textarea>
                                     @error('mensaje')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -159,7 +144,7 @@
                                 </div>
                                 <div class="col-12">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="newsletter" id="newsletter" 
+                                        <input class="form-check-input" type="checkbox" name="newsletter" id="newsletter"
                                                value="1" {{ old('newsletter') ? 'checked' : '' }}>
                                         <label class="form-check-label" for="newsletter">
                                             Quiero recibir noticias y promociones de Haki Pádel
@@ -183,7 +168,7 @@
                 <div class="info-card card mb-4">
                     <div class="card-body">
                         <h5 class="fw-bold mb-4">Información de Contacto</h5>
-                        
+
                         <div class="contact-info-item">
                             <div class="contact-info-icon">
                                 <i class="bi bi-geo-alt"></i>
@@ -193,7 +178,7 @@
                                 <p class="text-muted mb-0">Calle 45 #27-85<br>Bucaramanga, Santander</p>
                             </div>
                         </div>
-                        
+
                         <div class="contact-info-item">
                             <div class="contact-info-icon">
                                 <i class="bi bi-clock"></i>
@@ -206,7 +191,7 @@
                                 </p>
                             </div>
                         </div>
-                        
+
                         <div class="contact-info-item">
                             <div class="contact-info-icon">
                                 <i class="bi bi-envelope"></i>
@@ -214,7 +199,7 @@
                             <div>
                                 <h6 class="fw-bold mb-1">Emails</h6>
                                 <p class="text-muted mb-0">
-                                    General: <a href="mailto:info@hakipadel.com" class="text-decoration-none">info@hakipadel.com</a><br>
+                                    General: <a href="mailto:info@hakipadel.com" class="text-decoration-none">hakipadel@gmail.com</a><br>
                                     Reservas: <a href="mailto:reservas@hakipadel.com" class="text-decoration-none">reservas@hakipadel.com</a>
                                 </p>
                             </div>
@@ -223,20 +208,28 @@
                 </div>
 
                 <!-- Mapa -->
-                <div class="info-card card">
-                    <div class="card-body p-0">
-                        <div class="map-container">
-                            <!-- Aquí puedes integrar Google Maps o similar -->
-                            <div class="map-placeholder">
-                                <i class="bi bi-geo-alt display-4 text-muted"></i>
-                                <p class="text-muted mt-2">Mapa de Ubicación</p>
-                                <small class="text-muted">Bucaramanga, Santander</small>
-                            </div>
-                        </div>
+            <div class="info-card card">
+                <div class="card-body p-0">
+                    <div class="map-container">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3959.112365466656!2d-73.12146192501702!3d7.105454316750901!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e683fc7c3a9b5a5%3A0x7d5e5e5e5e5e5e5e!2sUniversidad%20Aut%C3%B3noma%20de%20Bucaramanga%2C%20Bucaramanga%2C%20Santander!5e0!3m2!1ses!2sco!4v1690000000000!5m2!1ses!2sco"
+                            width="100%"
+                            height="300"
+                            style="border:0;"
+                            allowfullscreen=""
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                            title="Ubicación HakiPadel - UNAB CSU">
+                        </iframe>
+                    </div>
+                    <div class="card-footer bg-light">
+                        <small class="text-muted">
+                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                            Universidad Autónoma de Bucaramanga - Campus El Jardín
+                        </small>
                     </div>
                 </div>
             </div>
-        </div>
 
         <!-- FAQ Section -->
         <div class="row mt-5">
@@ -244,7 +237,7 @@
                 <div class="info-card card">
                     <div class="card-body">
                         <h4 class="fw-bold mb-4 text-center">Preguntas Frecuentes</h4>
-                        
+
                         <div class="accordion" id="faqAccordion">
                             <div class="accordion-item border-0 mb-3">
                                 <h5 class="accordion-header">
@@ -258,7 +251,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="accordion-item border-0 mb-3">
                                 <h5 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
@@ -271,7 +264,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="accordion-item border-0 mb-3">
                                 <h5 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
@@ -284,7 +277,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="accordion-item border-0">
                                 <h5 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
@@ -311,13 +304,13 @@
     // Animación de los métodos de contacto
     document.addEventListener('DOMContentLoaded', function() {
         const contactMethods = document.querySelectorAll('.contact-method');
-        
+
         contactMethods.forEach((method, index) => {
             setTimeout(() => {
                 method.style.opacity = '0';
                 method.style.transform = 'translateY(20px)';
                 method.style.transition = 'all 0.6s ease';
-                
+
                 setTimeout(() => {
                     method.style.opacity = '1';
                     method.style.transform = 'translateY(0)';

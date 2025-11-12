@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reserva;
+use App\Models\Notificacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -10,7 +11,6 @@ class ReservaController extends Controller
 {
     public function store(Request $request)
     {
-        // Validar datos del formulario
         $validated = $request->validate([
             'cancha_id' => 'required|exists:canchas,id',
             'fecha' => 'required|date|after_or_equal:today',
@@ -18,24 +18,19 @@ class ReservaController extends Controller
             'jugadores' => 'required|integer|min:2|max:4',
         ]);
 
-        // Separar el rango horario "08:00-10:00"
         [$horaInicio, $horaFin] = explode('-', $validated['horario']);
 
-        // Verificar que no exista una reserva para la misma cancha en ese horario
         $yaReservada = Reserva::where('id_cancha', $validated['cancha_id'])
             ->where('fecha', $validated['fecha'])
-            ->where(function ($q) use ($horaInicio, $horaFin) {
-                $q->whereBetween('hora_inicio', [$horaInicio, $horaFin])
-                  ->orWhereBetween('hora_fin', [$horaInicio, $horaFin]);
-            })
+            ->where('hora_inicio', $horaInicio)
             ->exists();
 
         if ($yaReservada) {
             return back()->with('error', 'Este horario ya está reservado. Intenta con otro.');
         }
 
-        // Crear la reserva
-        Reserva::create([
+        // Crear la reserva con estado pendiente
+        $reserva = Reserva::create([
             'user_id' => Auth::id(),
             'id_cancha' => $validated['cancha_id'],
             'fecha' => $validated['fecha'],
@@ -45,6 +40,59 @@ class ReservaController extends Controller
             'estado' => 'pendiente',
         ]);
 
-        return redirect()->route('canchas.index')->with('success', '¡Reserva creada exitosamente!');
+        // Crear notificación de reserva pendiente
+        Notificacion::create([
+            'user_id' => Auth::id(),
+            'titulo' => 'Reserva pendiente de pago',
+            'contenido' => "Tu reserva para el {$validated['fecha']} de {$horaInicio} a {$horaFin} está pendiente de pago.",
+            'tipo' => 'reserva',
+            'leida' => false,
+        ]);
+
+        // Redirigir a una vista de confirmación de pago
+        return redirect()->route('reservas.pago', ['id' => $reserva->id]);
     }
+
+    // Nueva función para mostrar la pantalla de pago
+    public function pago($id)
+    {
+        $reserva = Reserva::findOrFail($id);
+        return view('reservas.pago', compact('reserva'));
+    }
+
+    // Simulación del proceso de pago
+    public function completarPago($id)
+    {
+        $reserva = Reserva::findOrFail($id);
+        $reserva->estado = 'completada';
+        $reserva->save();
+
+        //Crear notificación de reserva completada
+        Notificacion::create([
+            'user_id' => $reserva->user_id,
+            'titulo' => 'Reserva completada',
+            'contenido' => "Tu pago fue exitoso. Tu reserva para el {$reserva->fecha} de {$reserva->hora_inicio} a {$reserva->hora_fin} está confirmada.",
+            'tipo' => 'reserva',
+            'leida' => false,
+        ]);
+
+        return redirect()->route('canchas.index')
+            ->with('success', '¡Pago completado! Tu reserva está confirmada.');
+    }
+
+    public function cancelar($id)
+    {
+        $reserva = Reserva::findOrFail($id);
+
+        //cancelar reserva
+        if ($reserva->user_id !== Auth::id()) {
+            return redirect()->route('canchas.index')->with('error', 'No tienes permiso para cancelar esta reserva.');
+        }
+
+        $reserva->delete();
+
+        return redirect()->route('canchas.index')->with('success', 'Tu reserva ha sido cancelada correctamente.');
+    }
+
 }
+

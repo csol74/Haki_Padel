@@ -6,8 +6,7 @@
 
 @section('content')
 <div class="container-fluid p-0" style="background-color:#E8F3F5; min-height:100vh;">
-    @include('layouts.navbar')
-    
+
     <div class="container py-4">
         <!-- Título -->
         <div class="text-center mb-4">
@@ -76,7 +75,7 @@
                     </div>
                     <div class="card-body">
                         <h5 class="card-title fw-bold">{{ $torneo->nombre ?? 'Torneo de Pádel' }}</h5>
-                        
+
                         <!-- Fecha del torneo -->
                         <div class="tournament-date">
                             <div class="date-day">{{ date('d', strtotime($torneo->fecha_inicio ?? now())) }}</div>
@@ -112,7 +111,7 @@
                                 Inscripciones hasta: {{ date('d/m/Y', strtotime($torneo->fecha_limite_inscripcion ?? now())) }}
                             </small>
                         </div>
-                        
+
                         <div class="d-flex gap-2">
                             <a href="{{ route('torneos.show', $torneo->id) }}" class="btn btn-outline-primary flex-fill">
                                 <i class="bi bi-eye me-1"></i>Ver Detalles
@@ -152,7 +151,7 @@
                                 <input type="hidden" name="torneo_id" value="{{ $torneo->id }}">
                                 <h6 class="fw-bold">{{ $torneo->nombre }}</h6>
                                 <p class="text-muted">{{ $torneo->descripcion ?? 'Torneo de pádel emocionante con grandes premios.' }}</p>
-                                
+
                                 <div class="alert alert-info">
                                     <i class="bi bi-info-circle me-2"></i>
                                     <strong>Información importante:</strong><br>
@@ -213,11 +212,11 @@
                         </div>
                         <div class="timeline-item">
                             <h6 class="fw-bold">Copa Hakipadel</h6>
-                            <small class="text-muted">Torneo anual - Diciembre 2024</small>
+                            <small class="text-muted">Torneo anual - Diciembre 2025</small>
                         </div>
                         <div class="alert alert-success mt-3">
                             <i class="bi bi-whatsapp me-2"></i>
-                            <strong>WhatsApp:</strong> +57 300 123 4567
+                            <strong>WhatsApp:</strong> +57 311 217 2009
                         </div>
                     </div>
                 </div>
@@ -227,15 +226,3 @@
 </div>
 @endsection
 
-@section('scripts')
-<script>
-// Mostrar alertas de éxito/error
-@if(session('success'))
-    alert('{{ session("success") }}');
-@endif
-
-@if(session('error'))
-    alert('{{ session("error") }}');
-@endif
-</script>
-@endsection

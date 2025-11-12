@@ -2,7 +2,6 @@
 
 @section('content')
 <div class="container-fluid p-0" style="background-color:#E8F3F5; min-height:100vh;">
-    @include('layouts.navbar')
 
     <!-- Carrusel principal -->
     <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">

@@ -1,0 +1,74 @@
+/* Estilos generales del dropdown de notificaciones */
+.notificaciones-dropdown {
+    min-width: 280px;
+    max-height: 320px;
+    overflow-y: auto;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    background-color: #ffffff;
+    scrollbar-width: thin;
+}
+
+/* Scrollbar discreto */
+.notificaciones-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+.notificaciones-dropdown::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 3px;
+}
+
+/* Encabezado */
+.notificaciones-dropdown h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+/* Cada notificación */
+.dropdown-item {
+    font-size: 0.85rem;
+    line-height: 1.2rem;
+    border-radius: 8px;
+    padding: 8px 10px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.dropdown-item:hover {
+    background-color: #f3f6f8;
+}
+
+/* Notificaciones nuevas */
+.dropdown-item.fw-bold {
+    background-color: #e9f7ef;
+}
+
+/* Tiempo */
+.dropdown-item small.text-secondary {
+    font-size: 0.75rem;
+}
+
+/* Icono campana */
+#dropdownNotificaciones {
+    position: relative;
+    transition: transform 0.1s ease;
+}
+#dropdownNotificaciones:active {
+    transform: scale(0.95);
+}
+
+/* Badge rojo */
+#notificacionesBadge {
+    font-size: 0.7rem;
+    padding: 3px 5px;
+}
+
+/* Animación de aparición */
+@keyframes fadeInDropdown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.notificaciones-dropdown.show {
+    animation: fadeInDropdown 0.25s ease;
+}

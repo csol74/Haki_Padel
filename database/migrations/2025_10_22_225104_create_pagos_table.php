@@ -12,9 +12,9 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->enum('concepto', ['reserva', 'clase', 'torneo']);
-            $table->unsignedBigInteger('id_referencia')->nullable();
+            $table->string('id_referencia', 120)->nullable();
             $table->decimal('monto', 10, 2);
-            $table->enum('metodo_pago', ['efectivo', 'transferencia', 'tarjeta'])->default('efectivo');
+            $table->enum('metodo_pago', ['efectivo', 'transferencia', 'tarjeta', 'mercadopago'])->default('efectivo');
             $table->enum('estado', ['pendiente', 'completado', 'reembolsado'])->default('pendiente');
             $table->timestamps();
 

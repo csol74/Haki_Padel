@@ -3,21 +3,9 @@
 @section('styles')
 <link rel="stylesheet" href="{{ asset('css/canchas.css') }}">
 @endsection
-@if(session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
-
-@if(session('error'))
-    <div class="alert alert-danger">
-        {{ session('error') }}
-    </div>
-@endif
 
 @section('content')
 <div class="container-fluid p-0" style="background-color:#E8F3F5; min-height:100vh;">
-    @include('layouts.navbar')
 
     <div class="container py-4">
         <!-- Breadcrumb -->
