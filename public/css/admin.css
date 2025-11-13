@@ -1,0 +1,221 @@
+/* ========================================
+   ESTILOS PARA PANEL DE ADMINISTRACIÓN
+   ======================================== */
+
+/* General */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Navbar Admin - Mantiene colores originales del sitio */
+.admin-navbar {
+    background-color: #28a745;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.admin-navbar .navbar-brand {
+    font-weight: bold;
+    font-size: 1.3rem;
+    color: #fff !important;
+}
+
+.admin-navbar .navbar-brand:hover {
+    color: #f8f9fa !important;
+}
+
+.admin-navbar .nav-link {
+    color: rgba(255,255,255,0.9) !important;
+    font-weight: 500;
+    transition: all 0.3s;
+    padding: 0.5rem 1rem;
+}
+
+.admin-navbar .nav-link:hover {
+    color: #fff !important;
+    background-color: rgba(255,255,255,0.1);
+    border-radius: 5px;
+}
+
+.admin-navbar .nav-link.active {
+    color: #fff !important;
+    background-color: rgba(255,255,255,0.2);
+    border-radius: 5px;
+}
+
+.admin-navbar .dropdown-menu {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,.1);
+}
+
+.admin-badge {
+    background-color: #ffc107;
+    color: #000;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+/* Footer Admin */
+.admin-footer {
+    background-color: #212529;
+    color: #fff;
+    padding: 2rem 0;
+    margin-top: 4rem;
+}
+
+.admin-footer h5 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.admin-footer a {
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.admin-footer a:hover {
+    color: #fff;
+}
+
+.admin-footer .text-muted {
+    color: rgba(255,255,255,0.6) !important;
+}
+
+/* Cards y Stats */
+.card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border-radius: 10px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+}
+
+.card-header {
+    border-bottom: 2px solid #e9ecef;
+    font-weight: 600;
+}
+
+/* Tabs */
+.nav-tabs {
+    border-bottom: 2px solid #dee2e6;
+}
+
+.nav-tabs .nav-link {
+    color: #6c757d;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #28a745;
+    border: none;
+}
+
+.nav-tabs .nav-link.active {
+    color: #28a745;
+    background-color: transparent;
+    border: none;
+    border-bottom: 3px solid #28a745;
+}
+
+/* Tables */
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table thead {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+/* Badges */
+.badge {
+    padding: 0.4rem 0.8rem;
+    font-weight: 500;
+}
+
+/* Buttons */
+.btn {
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,.15);
+}
+
+/* Stats Cards */
+.card-body.text-center i {
+    transition: transform 0.3s;
+}
+
+.card:hover .card-body.text-center i {
+    transform: scale(1.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-navbar .navbar-brand {
+        font-size: 1rem;
+    }
+
+    .admin-badge {
+        font-size: 0.6rem;
+        padding: 1px 6px;
+    }
+
+    .nav-tabs .nav-link {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card, .alert {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Alerts */
+.alert {
+    border: none;
+    border-left: 4px solid;
+}
+
+.alert-success {
+    border-left-color: #28a745;
+}
+
+.alert-danger {
+    border-left-color: #dc3545;
+}
+
+.alert-info {
+    border-left-color: #17a2b8;
+}
+
+.alert-warning {
+    border-left-color: #ffc107;
+}

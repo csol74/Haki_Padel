@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PagoController;
+use App\Http\Controllers\AdminController;
 use App\Models\Notificacion;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
@@ -21,7 +22,31 @@ Route::get('/', function () {
 // WEBHOOK DE MERCADOPAGO (FUERA DEL MIDDLEWARE AUTH)
 Route::post('/mercadopago/webhook', [MercadoPagoController::class, 'webhook'])->name('mercadopago.webhook');
 
-// Rutas que requieren autenticación Y limpieza automática de reservas expiradas
+// ========== RUTAS DE ADMINISTRACIÓN ==========
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+
+    // Dashboard principal
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+
+    // Gestión de usuarios
+    Route::get('/usuarios', [AdminController::class, 'usuarios'])->name('usuarios');
+    Route::delete('/usuarios/{id}', [AdminController::class, 'eliminarUsuario'])->name('usuarios.eliminar');
+
+    // Gestión de reservas
+    Route::get('/reservas', [AdminController::class, 'reservas'])->name('reservas');
+    Route::delete('/reservas/{id}', [AdminController::class, 'cancelarReserva'])->name('reservas.cancelar');
+
+    // Gestión de torneos
+    Route::get('/torneos', [AdminController::class, 'torneos'])->name('torneos');
+    Route::post('/torneos', [AdminController::class, 'crearTorneo'])->name('torneos.crear');
+    Route::put('/torneos/{id}', [AdminController::class, 'actualizarTorneo'])->name('torneos.actualizar');
+    Route::delete('/torneos/{id}', [AdminController::class, 'eliminarTorneo'])->name('torneos.eliminar');
+
+    // Reportes
+    Route::get('/reportes', [AdminController::class, 'reportes'])->name('reportes');
+});
+
+// ========== RUTAS DE CLIENTES ==========
 Route::middleware(['auth', 'limpiar.reservas'])->group(function () {
 
     // Home
@@ -39,6 +64,7 @@ Route::middleware(['auth', 'limpiar.reservas'])->group(function () {
     Route::get('/torneos', [TorneoController::class, 'index'])->name('torneos.index');
     Route::get('/torneos/{id}', [TorneoController::class, 'show'])->name('torneos.show');
     Route::post('/torneos/inscribir', [TorneoController::class, 'store'])->name('torneos.inscribir');
+    Route::post('/torneos/cancelar-inscripcion', [TorneoController::class, 'cancelarInscripcion'])->name('torneos.cancelar');
 
     // Perfil
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');

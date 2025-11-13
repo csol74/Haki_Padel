@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Registrar alias de middleware personalizado
         $middleware->alias([
             'limpiar.reservas' => \App\Http\Middleware\LimpiarReservasExpiradas::class,
+            'admin' => \App\Http\Middleware\IsAdmin::class, // ← NUEVO
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

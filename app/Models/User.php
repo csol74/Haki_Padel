@@ -14,6 +14,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     protected $hidden = [
@@ -29,7 +30,18 @@ class User extends Authenticatable
         ];
     }
 
-    // AGREGAR ESTAS RELACIONES
+    // Métodos de rol
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isCliente()
+    {
+        return $this->role === 'cliente';
+    }
+
+    // Relaciones
     public function reservas()
     {
         return $this->hasMany(\App\Models\Reserva::class);
@@ -43,5 +55,12 @@ class User extends Authenticatable
     public function notificaciones()
     {
         return $this->hasMany(\App\Models\Notificacion::class);
+    }
+
+    public function torneosInscritos()
+    {
+        return $this->belongsToMany(\App\Models\Torneo::class, 'participantes_torneo', 'user_id', 'id_torneo')
+                    ->withPivot('estado', 'created_at')
+                    ->withTimestamps();
     }
 }
