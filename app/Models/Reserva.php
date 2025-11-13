@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-
 class Reserva extends Model
 {
     use HasFactory;
@@ -16,18 +15,23 @@ class Reserva extends Model
         'fecha',
         'hora_inicio',
         'hora_fin',
-        'estado',
         'numero_jugadores',
+        'estado',
     ];
 
-    // Relaciones
+    /**
+     * Relación con usuario
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relación con cancha
+     */
     public function cancha()
     {
         return $this->belongsTo(Cancha::class, 'id_cancha');
-    }
-
-    public function usuario()
-    {
-        return $this->belongsTo(User::class, 'user_id');
     }
 }

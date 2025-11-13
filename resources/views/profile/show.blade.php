@@ -6,7 +6,6 @@
 
 @section('content')
 <div class="container-fluid perfil-container">
-    @include('layouts.navbar')  
 
     <!-- Profile Header -->
     <div class="profile-header">
@@ -19,11 +18,7 @@
                     <h1>{{ $user->name }}</h1>
                     <p class="profile-meta">
                         📧 {{ $user->email }}
-                        @if($user->email_verified_at)
-                            <span class="email-status verified">✓ Verificado</span>
-                        @else
-                            <span class="email-status not-verified">⏳ No verificado</span>
-                        @endif
+                        {{-- Ocultamos el estado de verificación si no es necesario --}}
                     </p>
                     <div class="profile-stats">
                         <div class="stat-box">
@@ -85,112 +80,107 @@
 
             <!-- Content Area -->
             <div class="content-area">
-
-                <!-- Mis Reservas Activas -->
-                <div class="section-card">
-                    <h2 class="section-title">📅 Mis Próximas Reservas</h2>
-
-                    <div class="reservas-list">
-                        <div class="reserva-item">
-                            <div class="reserva-info">
-                                <span class="reserva-icon">🎾</span>
-                                <div class="reserva-details">
-                                    <h4>Cancha 1 - Premium</h4>
-                                    <p class="reserva-meta">📅 Hoy, 17 de Octubre • 🕐 8:00 PM - 9:30 PM</p>
-                                </div>
-                            </div>
-                            <div class="reserva-right">
-                                <span class="reserva-status status-confirmada">✓ Confirmada</span>
-                                <div class="reserva-actions">
-                                    <button class="btn-action btn-ver">Ver QR</button>
-                                    <button class="btn-action btn-cancelar">Cancelar</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="reserva-item">
-                            <div class="reserva-info">
-                                <span class="reserva-icon">🎾</span>
-                                <div class="reserva-details">
-                                    <h4>Cancha 4 - Estándar</h4>
-                                    <p class="reserva-meta">📅 Sábado, 19 de Octubre • 🕐 10:00 AM - 11:30 AM</p>
-                                </div>
-                            </div>
-                            <div class="reserva-right">
-                                <span class="reserva-status status-confirmada">✓ Confirmada</span>
-                                <div class="reserva-actions">
-                                    <button class="btn-action btn-ver">Ver Detalles</button>
-                                    <button class="btn-action btn-cancelar">Cancelar</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="reserva-item">
-                            <div class="reserva-info">
-                                <span class="reserva-icon">🎾</span>
-                                <div class="reserva-details">
-                                    <h4>Cancha 2 - Estándar</h4>
-                                    <p class="reserva-meta">📅 Lunes, 21 de Octubre • 🕐 6:00 PM - 7:30 PM</p>
-                                </div>
-                            </div>
-                            <div class="reserva-right">
-                                <span class="reserva-status status-pendiente">⏳ Pago Pendiente</span>
-                                <div class="reserva-actions">
-                                    <button class="btn-action btn-pagar">Pagar Ahora</button>
-                                    <button class="btn-action btn-cancelar">Cancelar</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                {{-- Sección: Mis Reservas --}}
+                <div id="section-reservas" class="profile-section active">
+                    @include('profile.partials.reservas-pendientes')
+                    @include('profile.partials.reservas-proximas')
+                    @include('profile.partials.reservas-historial')
                 </div>
 
-                <!-- Historial de Reservas -->
-                <div class="section-card">
-                    <h2 class="section-title">📋 Historial de Reservas</h2>
-
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-card-icon">🎾</div>
-                            <div class="stat-card-value">{{ $stats['total_reservations'] }}</div>
-                            <div class="stat-card-label">Total Reservas</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-card-icon">✓</div>
-                            <div class="stat-card-value">{{ $stats['completed_reservations'] }}</div>
-                            <div class="stat-card-label">Completadas</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-card-icon">✗</div>
-                            <div class="stat-card-value">{{ $stats['cancelled_reservations'] }}</div>
-                            <div class="stat-card-label">Canceladas</div>
-                        </div>
-                    </div>
-
-                    <div class="reservas-list">
-                        <div class="reserva-item reserva-historica">
-                            <div class="reserva-info">
-                                <span class="reserva-icon">🎾</span>
-                                <div class="reserva-details">
-                                    <h4>Cancha 3 - Premium</h4>
-                                    <p class="reserva-meta">📅 12 de Octubre • 🕐 7:00 PM - 8:30 PM</p>
-                                </div>
-                            </div>
-                            <span class="reserva-status status-confirmada">✓ Completada</span>
-                        </div>
-
-                        <div class="reserva-item reserva-historica">
-                            <div class="reserva-info">
-                                <span class="reserva-icon">🎾</span>
-                                <div class="reserva-details">
-                                    <h4>Cancha 1 - Premium</h4>
-                                    <p class="reserva-meta">📅 8 de Octubre • 🕐 9:00 AM - 10:30 AM</p>
-                                </div>
-                            </div>
-                            <span class="reserva-status status-confirmada">✓ Completada</span>
-                        </div>
-                    </div>
+                {{-- Sección: Mis Torneos --}}
+                <div id="section-torneos" class="profile-section" style="display: none;">
+                    @include('profile.partials.torneos')
                 </div>
+
+                {{-- Sección: Estadísticas --}}
+                <div id="section-estadisticas" class="profile-section" style="display: none;">
+                    @include('profile.partials.estadisticas')
+                </div>
+
+                {{-- Sección: Mi Información --}}
+                <div id="section-informacion" class="profile-section" style="display: none;">
+                    @include('profile.partials.informacion')
+                </div>
+
+                {{-- Sección: Pagos --}}
+                <div id="section-pagos" class="profile-section" style="display: none;">
+                    @include('profile.partials.pagos')
+                </div>
+
+                {{-- Sección: Configuración --}}
+                <div id="section-configuracion" class="profile-section" style="display: none;">
+                    @include('profile.partials.configuracion')
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
 
 @section('scripts')
-    <script src="{{ asset('js/perfil.js') }}"></script>
+    <script>
+        // ===================================
+        // SISTEMA DE NAVEGACIÓN DEL PERFIL
+        // ===================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuItems = document.querySelectorAll('.menu-item[data-section]');
+            const sections = document.querySelectorAll('.profile-section');
+
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const sectionName = this.getAttribute('data-section');
+
+                    // Remover clase active de todos los items del menú
+                    menuItems.forEach(mi => mi.classList.remove('active'));
+
+                    // Agregar clase active al item clickeado
+                    this.classList.add('active');
+
+                    // Ocultar todas las secciones
+                    sections.forEach(section => {
+                        section.style.display = 'none';
+                        section.classList.remove('active');
+                    });
+
+                    // Mostrar la sección seleccionada
+                    const targetSection = document.getElementById('section-' + sectionName);
+                    if (targetSection) {
+                        targetSection.style.display = 'block';
+                        targetSection.classList.add('active');
+
+                        // Scroll suave hacia arriba
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                });
+            });
+        });
+
+        // ===================================
+        // COUNTDOWN TIMER PARA RESERVAS
+        // ===================================
+        function updateCountdowns() {
+            document.querySelectorAll('.countdown').forEach(el => {
+                const createdAt = new Date(el.dataset.created);
+                const expiresAt = new Date(createdAt.getTime() + 5 * 60 * 1000);
+                const now = new Date();
+                const diff = expiresAt - now;
+
+                if (diff <= 0) {
+                    el.textContent = 'Expirada';
+                    el.classList.add('text-danger', 'fw-bold');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    const minutes = Math.floor(diff / 60000);
+                    const seconds = Math.floor((diff % 60000) / 1000);
+                    el.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }
+            });
+        }
+
+        // Iniciar countdown si hay elementos
+        if (document.querySelector('.countdown')) {
+            setInterval(updateCountdowns, 1000);
+            updateCountdowns();
+        }
+    </script>
 @endsection

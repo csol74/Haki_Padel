@@ -6,6 +6,7 @@ use App\Models\Reserva;
 use App\Models\Notificacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Console\Scheduling\Schedule;
 
 class ReservaController extends Controller
 {
@@ -44,7 +45,7 @@ class ReservaController extends Controller
         Notificacion::create([
             'user_id' => Auth::id(),
             'titulo' => 'Reserva pendiente de pago',
-            'contenido' => "Tu reserva para el {$validated['fecha']} de {$horaInicio} a {$horaFin} está pendiente de pago.",
+            'contenido' => "Tu reserva para el {$validated['fecha']} de {$horaInicio} a {$horaFin} está pendiente de pago. Tienes 5 minutos para completarla.",
             'tipo' => 'reserva',
             'leida' => false,
         ]);
@@ -76,7 +77,7 @@ class ReservaController extends Controller
             'leida' => false,
         ]);
 
-        return redirect()->route('canchas.index')
+        return redirect()->route('profile.show')
             ->with('success', '¡Pago completado! Tu reserva está confirmada.');
     }
 
@@ -86,13 +87,35 @@ class ReservaController extends Controller
 
         //cancelar reserva
         if ($reserva->user_id !== Auth::id()) {
-            return redirect()->route('canchas.index')->with('error', 'No tienes permiso para cancelar esta reserva.');
+            return redirect()->route('profile.show')->with('error', 'No tienes permiso para cancelar esta reserva.');
         }
 
         $reserva->delete();
 
-        return redirect()->route('canchas.index')->with('success', 'Tu reserva ha sido cancelada correctamente.');
+        return redirect()->route('profile.show')->with('success', 'Tu reserva ha sido cancelada correctamente.');
     }
 
-}
+    /**
+     * Limpiar reservas expiradas (mayores a 5 minutos sin pagar)
+     */
+    public static function limpiarReservasExpiradas()
+    {
+        $reservasExpiradas = Reserva::where('estado', 'pendiente')
+            ->where('created_at', '<', now()->subMinutes(5))
+            ->get();
 
+        foreach ($reservasExpiradas as $reserva) {
+            // Crear notificación de expiración
+            Notificacion::create([
+                'user_id' => $reserva->user_id,
+                'titulo' => 'Reserva expirada',
+                'contenido' => "Tu reserva para el {$reserva->fecha} de {$reserva->hora_inicio} a {$reserva->hora_fin} ha caducado por falta de pago.",
+                'tipo' => 'reserva',
+                'leida' => false,
+            ]);
+
+            // Eliminar reserva
+            $reserva->delete();
+        }
+    }
+}

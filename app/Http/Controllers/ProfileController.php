@@ -1,36 +1,52 @@
 <?php
-// app/Http/Controllers/ProfileController.php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
+use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
-public function show()
-{
-    $user = Auth::user();
+    public function show()
+    {
+        $user = Auth::user();
 
-    // Puedes calcular o simular las estadísticas
-    $stats = [
-        'matches_played' => 12,
-        'tournaments' => 3,
-        'member_since' => $user->created_at->format('Y'),
-        'total_reservations' => 20,
-        'completed_reservations' => 15,
-        'cancelled_reservations' => 5,
-    ];
+        // Cargar reservas con relaciones
+        $user->load('reservas.cancha');
 
-    return view('profile.show', compact('user', 'stats'));
-}
+        // Calcular estadísticas
+        $stats = [
+            'matches_played' => $user->reservas()->where('estado', 'completada')->count(),
+            'tournaments' => 0,
+            'member_since' => $user->created_at->format('Y'),
+            'total_reservations' => $user->reservas()->count(),
+            'completed_reservations' => $user->reservas()->where('estado', 'completada')->count(),
+            'cancelled_reservations' => $user->reservas()->where('estado', 'cancelada')->count(),
+        ];
 
-
+        return view('profile.show', compact('user', 'stats'));
+    }
 
     public function update(Request $request)
     {
         $user = Auth::user();
-        $user->update($request->only(['name', 'email']));
-        return redirect()->route('profile.show')->with('success', 'Perfil actualizado correctamente.');
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|min:8|confirmed',
+        ]);
+
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        return back()->with('success', 'Perfil actualizado correctamente');
     }
 }

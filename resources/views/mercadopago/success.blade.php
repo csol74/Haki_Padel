@@ -31,8 +31,8 @@
             </div>
         @endif
 
-        <a href="{{ route('home') }}" class="btn btn-success btn-lg px-5 py-2 fw-semibold">
-            <i class="bi bi-house-door-fill me-2"></i>Volver al Inicio
+        <a href="{{ route('profile.show') }}" class="btn btn-success btn-lg px-5 py-2 fw-semibold">
+            <i class="bi bi-house-door-fill me-2"></i>Regresar a perfil
         </a>
     </div>
 </div>

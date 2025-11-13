@@ -18,8 +18,11 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// Rutas que requieren autenticación
-Route::middleware('auth')->group(function () {
+// WEBHOOK DE MERCADOPAGO (FUERA DEL MIDDLEWARE AUTH)
+Route::post('/mercadopago/webhook', [MercadoPagoController::class, 'webhook'])->name('mercadopago.webhook');
+
+// Rutas que requieren autenticación Y limpieza automática de reservas expiradas
+Route::middleware(['auth', 'limpiar.reservas'])->group(function () {
 
     // Home
     Route::get('/home', [HomeController::class, 'index'])->name('home');
@@ -41,7 +44,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    // Reservas - CORREGIDO (sin duplicados)
+    // Reservas
     Route::post('/reservas', [ReservaController::class, 'store'])->name('reservas.store');
     Route::get('/reservas/{id}/pago', [ReservaController::class, 'pago'])->name('reservas.pago');
     Route::post('/reservas/{id}/completar', [ReservaController::class, 'completarPago'])->name('reservas.completar');
@@ -62,6 +65,8 @@ Route::middleware('auth')->group(function () {
     // MercadoPago
     Route::get('/reservas/{reserva}/pagar', [MercadoPagoController::class, 'createPreference'])
         ->name('mercadopago.preference');
+    Route::get('/mercadopago/confirmar', [MercadoPagoController::class, 'confirmar'])
+        ->name('mercadopago.confirmar');
     Route::get('/mercadopago/success', [MercadoPagoController::class, 'success'])
         ->name('mercadopago.success');
     Route::get('/mercadopago/failure', [MercadoPagoController::class, 'failure'])
