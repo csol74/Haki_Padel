@@ -10,18 +10,35 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    /**
+     * The attributes that are mass assignable.
+     */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'role',
+        
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    /**
+     * Seguridad
+     */
+    protected $guarded = [
+        'role',
+        'email_verified_at',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     */
     protected function casts(): array
     {
         return [
@@ -30,7 +47,8 @@ class User extends Authenticatable
         ];
     }
 
-    // Métodos de rol
+    // ============= MÉTODOS DE ROL =============
+
     public function isAdmin()
     {
         return $this->role === 'admin';
@@ -41,26 +59,32 @@ class User extends Authenticatable
         return $this->role === 'cliente';
     }
 
-    // Relaciones
+    // ============= RELACIONES =============
+
     public function reservas()
     {
-        return $this->hasMany(\App\Models\Reserva::class);
+        return $this->hasMany(Reserva::class);
     }
 
     public function pagos()
     {
-        return $this->hasMany(\App\Models\Pago::class);
+        return $this->hasMany(Pago::class);
     }
 
     public function notificaciones()
     {
-        return $this->hasMany(\App\Models\Notificacion::class);
+        return $this->hasMany(Notificacion::class);
     }
 
     public function torneosInscritos()
     {
-        return $this->belongsToMany(\App\Models\Torneo::class, 'participantes_torneo', 'user_id', 'id_torneo')
+        return $this->belongsToMany(Torneo::class, 'participantes_torneo', 'user_id', 'id_torneo')
                     ->withPivot('estado', 'created_at')
                     ->withTimestamps();
+    }
+
+    public function torneosOrganizados()
+    {
+        return $this->hasMany(Torneo::class, 'id_organizador');
     }
 }
