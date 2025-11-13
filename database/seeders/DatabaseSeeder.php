@@ -15,8 +15,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Ejecutar los seeders en orden
+        $this->call([
+            AdminUserSeeder::class,  // Primero el admin
+            CanchaSeeder::class,     // Luego las canchas
+            TorneoSeeder::class,     // Finalmente los torneos
+        ]);
 
+        // También puedes mantener el usuario de prueba si lo necesitas
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
