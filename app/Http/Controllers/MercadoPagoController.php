@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\Reserva;
 use App\Models\Torneo;
+use App\Models\ReservaClase;
 use App\Models\Pago;
 use App\Models\Notificacion;
 use MercadoPago\MercadoPagoConfig;
@@ -166,6 +167,78 @@ class MercadoPagoController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Exception en torneo', ['message' => $e->getMessage()]);
+            return back()->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Crear la preferencia y redirigir a MercadoPago (CLASES)
+     */
+    public function createPreferenceClase($reservaClase)
+    {
+        try {
+            if (!$reservaClase instanceof ReservaClase) {
+                $reservaClase = ReservaClase::findOrFail($reservaClase);
+            }
+
+            $reservaClase->load('profesor.user', 'horario');
+
+            $precio = (int) round((float) $reservaClase->precio);
+            $profesorNombre = $reservaClase->profesor->user->name ?? 'Profesor';
+            $fecha = $reservaClase->fecha_clase->format('d/m/Y');
+
+            $client = new PreferenceClient();
+
+            $preferenceData = [
+                "items" => [
+                    [
+                        "title" => "Clase de Pádel - {$profesorNombre} ({$fecha})",
+                        "quantity" => 1,
+                        "unit_price" => $precio,
+                        "currency_id" => "COP",
+                    ]
+                ],
+                "back_urls" => [
+                    "success" => route('mercadopago.clase.confirmar', ['reserva_id' => $reservaClase->id]),
+                    "failure" => route('mercadopago.clase.failure'),
+                    "pending" => route('mercadopago.clase.confirmar', ['reserva_id' => $reservaClase->id]),
+                ],
+                "external_reference" => "clase-{$reservaClase->id}",
+            ];
+
+            Log::info('Creando preferencia de clase', $preferenceData);
+
+            /** @var \MercadoPago\Resources\Preference $preference */
+            $preference = $client->create($preferenceData);
+
+            // Guardar pago
+            Pago::create([
+                'user_id' => auth()->id(),
+                'concepto' => 'clase',
+                'id_referencia' => $preference->id,
+                'monto' => $precio,
+                'metodo_pago' => 'mercadopago',
+                'estado' => 'pendiente',
+            ]);
+
+            $initPoint = $preference->init_point ?? $preference->sandbox_init_point;
+
+            if (!$initPoint) {
+                return back()->with('error', 'No se pudo generar el enlace de pago.');
+            }
+
+            // Guardar en sesión para después
+            session(['reserva_clase_pendiente_id' => $reservaClase->id]);
+
+            return redirect()->away($initPoint);
+
+        } catch (MPApiException $e) {
+            $responseContent = $e->getApiResponse()->getContent();
+            Log::error('MPApiException en clase', ['response' => $responseContent]);
+            return back()->with('error', 'Error al procesar el pago.');
+
+        } catch (\Exception $e) {
+            Log::error('Exception en clase', ['message' => $e->getMessage()]);
             return back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
@@ -440,6 +513,132 @@ class MercadoPagoController extends Controller
     }
 
     /**
+     * Confirmar reserva de clase después de regresar de MercadoPago
+     */
+    public function confirmarClase(Request $request)
+    {
+        $reservaId = $request->get('reserva_id') ?? session('reserva_clase_pendiente_id');
+        $paymentId = $request->get('payment_id');
+        $status = $request->get('status');
+        $collectionId = $request->get('collection_id');
+        $collectionStatus = $request->get('collection_status');
+
+        Log::info('Confirmando reserva de clase', [
+            'reserva_id' => $reservaId,
+            'payment_id' => $paymentId,
+            'status' => $status,
+        ]);
+
+        if (!$reservaId) {
+            return redirect()->route('clases.index')->with('error', 'No se encontró la reserva.');
+        }
+
+        $reserva = ReservaClase::find($reservaId);
+
+        if (!$reserva) {
+            return redirect()->route('clases.index')->with('error', 'Reserva no encontrada.');
+        }
+
+        // Buscar el pago asociado
+        $pago = Pago::where('user_id', auth()->id())
+                    ->where('concepto', 'clase')
+                    ->where('estado', 'pendiente')
+                    ->latest()
+                    ->first();
+
+        // Verificar el pago
+        $pagoVerificado = false;
+
+        try {
+            if ($paymentId || $collectionId) {
+                $realPaymentId = $paymentId ?? $collectionId;
+                $client = new PaymentClient();
+                /** @var \MercadoPago\Resources\Payment $payment */
+                $payment = $client->get($realPaymentId);
+
+                Log::info('Verificación de pago de clase', [
+                    'payment_id' => $realPaymentId,
+                    'status' => $payment->status,
+                ]);
+
+                if ($payment->status === 'approved') {
+                    $pagoVerificado = true;
+                }
+            } else {
+                if ($status === 'approved' || $collectionStatus === 'approved') {
+                    $pagoVerificado = true;
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Error al verificar pago de clase', ['error' => $e->getMessage()]);
+            
+            if ($status === 'approved' || $collectionStatus === 'approved') {
+                $pagoVerificado = true;
+            }
+        }
+
+        if ($pagoVerificado) {
+            try {
+                DB::beginTransaction();
+
+                // Actualizar pago
+                if ($pago && $pago->estado !== 'completado') {
+                    $pago->estado = 'completado';
+                    $pago->save();
+                }
+
+                // Confirmar reserva
+                if ($reserva->estado !== 'confirmada') {
+                    $reserva->confirmar();
+                }
+
+                // Crear notificación
+                $notificacionExiste = Notificacion::where('user_id', auth()->id())
+                    ->where('tipo', 'clase')
+                    ->where('contenido', 'LIKE', '%clase confirmada%')
+                    ->where('created_at', '>', now()->subMinutes(5))
+                    ->exists();
+
+                if (!$notificacionExiste) {
+                    Notificacion::create([
+                        'user_id' => auth()->id(),
+                        'titulo' => 'Clase Confirmada',
+                        'contenido' => "Tu clase con {$reserva->profesor->user->name} para el {$reserva->fecha_clase->format('d/m/Y')} ha sido confirmada.",
+                        'tipo' => 'clase',
+                        'leida' => false,
+                    ]);
+                }
+
+                DB::commit();
+
+                session()->forget('reserva_clase_pendiente_id');
+
+                Log::info('Reserva de clase confirmada exitosamente', ['reserva_id' => $reserva->id]);
+
+                return view('mercadopago.clase-success', [
+                    'reserva' => $reserva,
+                    'pago' => $pago,
+                ]);
+
+            } catch (\Exception $e) {
+                DB::rollback();
+                Log::error('Error al confirmar reserva de clase', ['error' => $e->getMessage()]);
+                return redirect()->route('clases.index')
+                    ->with('error', 'Ocurrió un error al confirmar tu reserva.');
+            }
+        } else {
+            Log::warning('Pago de clase no aprobado', [
+                'reserva_id' => $reservaId,
+                'payment_id' => $paymentId,
+                'status' => $status,
+            ]);
+
+            return redirect()->route('clases.index')->with('warning',
+                'Tu pago está pendiente de confirmación.');
+        }
+    }
+
+    /**
      * Redirección si el pago de torneo falla o se cancela
      */
     public function failureTorneo(Request $request)
@@ -450,6 +649,41 @@ class MercadoPagoController extends Controller
 
         return redirect()->route('torneos.index')
             ->with('error', 'El pago fue cancelado o falló. Puedes intentarlo nuevamente.');
+    }
+
+    /**
+     * Redirección si el pago de clase falla o se cancela
+     */
+    public function failureClase(Request $request)
+    {
+        Log::info('Pago de clase fallido', $request->all());
+
+        $reservaId = session('reserva_clase_pendiente_id');
+        
+        if ($reservaId) {
+            // ELIMINAR la reserva temporal para liberar el horario
+            $reserva = ReservaClase::find($reservaId);
+            if ($reserva && $reserva->estado === 'pendiente') {
+                Log::info('Eliminando reserva pendiente no pagada', ['reserva_id' => $reserva->id]);
+                $reserva->delete();
+            }
+        }
+
+        // También buscar por pago pendiente del usuario
+        $pago = Pago::where('user_id', auth()->id())
+                    ->where('concepto', 'clase')
+                    ->where('estado', 'pendiente')
+                    ->latest()
+                    ->first();
+
+        if ($pago) {
+            $pago->delete(); // Eliminar también el registro de pago pendiente
+        }
+
+        session()->forget('reserva_clase_pendiente_id');
+
+        return redirect()->route('clases.index')
+            ->with('info', 'El pago fue cancelado. El horario está disponible nuevamente.');
     }
 
     /**

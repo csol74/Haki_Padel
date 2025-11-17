@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ClaseController;
 use App\Models\Notificacion;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
@@ -66,6 +67,14 @@ Route::middleware(['auth', 'limpiar.reservas'])->group(function () {
     Route::post('/torneos/inscribir', [TorneoController::class, 'store'])->name('torneos.inscribir');
     Route::post('/torneos/cancelar-inscripcion', [TorneoController::class, 'cancelarInscripcion'])->name('torneos.cancelar');
 
+    // Clases (NUEVO)
+    Route::get('/clases', [ClaseController::class, 'index'])->name('clases.index');
+    Route::get('/clases/{id}', [ClaseController::class, 'show'])->name('clases.show');
+    Route::get('/clases/horarios/disponibles', [ClaseController::class, 'obtenerHorariosDisponibles'])->name('clases.horarios');
+    Route::post('/clases/calcular-precio', [ClaseController::class, 'calcularPrecio'])->name('clases.calcular-precio');
+    Route::post('/clases/reservar', [ClaseController::class, 'reservar'])->name('clases.reservar');
+    Route::post('/clases/{id}/cancelar', [ClaseController::class, 'cancelarReserva'])->name('clases.cancelar');
+
     // Perfil
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -87,45 +96,22 @@ Route::middleware(['auth', 'limpiar.reservas'])->group(function () {
             ->update(['leida' => true]);
         return response()->json(['ok' => true]);
     })->name('notificaciones.leer');
-
-    // MercadoPago
-    Route::get('/reservas/{reserva}/pagar', [MercadoPagoController::class, 'createPreference'])
-        ->name('mercadopago.preference');
-    Route::get('/mercadopago/confirmar', [MercadoPagoController::class, 'confirmar'])
-        ->name('mercadopago.confirmar');
-    Route::get('/mercadopago/success', [MercadoPagoController::class, 'success'])
-        ->name('mercadopago.success');
-    Route::get('/mercadopago/failure', [MercadoPagoController::class, 'failure'])
-        ->name('mercadopago.failure');
-
-
-
-
-    // RUTAS PARA TORNEOS CON MERCADOPAGO
-// Agregar estas rutas a tu archivo routes/web.php
-
-// Rutas de torneos (ya existentes, pero asegúrate de que estén así)
-Route::middleware(['auth', 'limpiar.reservas'])->group(function () {
-    Route::get('/torneos', [TorneoController::class, 'index'])->name('torneos.index');
-    Route::get('/torneos/{id}', [TorneoController::class, 'show'])->name('torneos.show');
-    Route::post('/torneos/inscribir', [TorneoController::class, 'store'])->name('torneos.inscribir');
-    Route::post('/torneos/cancelar-inscripcion', [TorneoController::class, 'cancelarInscripcion'])->name('torneos.cancelar');
 });
 
-// Rutas de MercadoPago para reservas (ya existentes)
+// ========== RUTAS DE MERCADOPAGO ==========
 Route::middleware(['auth'])->group(function () {
+    
+    // Reservas de canchas
+    Route::get('/reservas/{reserva}/pagar', [MercadoPagoController::class, 'createPreference'])->name('mercadopago.preference');
+    Route::get('/mercadopago/confirmar', [MercadoPagoController::class, 'confirmar'])->name('mercadopago.confirmar');
     Route::get('/mercadopago/success', [MercadoPagoController::class, 'success'])->name('mercadopago.success');
     Route::get('/mercadopago/failure', [MercadoPagoController::class, 'failure'])->name('mercadopago.failure');
-    Route::get('/mercadopago/confirmar', [MercadoPagoController::class, 'confirmar'])->name('mercadopago.confirmar');
-});
-
-// NUEVAS RUTAS para MercadoPago de torneos (agregar estas)
-Route::middleware(['auth'])->group(function () {
+    
+    // Torneos
     Route::get('/mercadopago/torneo/confirmar', [MercadoPagoController::class, 'confirmarTorneo'])->name('mercadopago.torneo.confirmar');
     Route::get('/mercadopago/torneo/failure', [MercadoPagoController::class, 'failureTorneo'])->name('mercadopago.torneo.failure');
+    
+    // Clases (NUEVO)
+    Route::get('/mercadopago/clase/confirmar', [MercadoPagoController::class, 'confirmarClase'])->name('mercadopago.clase.confirmar');
+    Route::get('/mercadopago/clase/failure', [MercadoPagoController::class, 'failureClase'])->name('mercadopago.clase.failure');
 });
-
-
-
-
-    });

@@ -19,6 +19,10 @@
                    href="{{ route('canchas.index') }}">Canchas</a>
             </li>
             <li class="nav-item me-4">
+                <a class="nav-link {{ request()->routeIs('clases.*') ? 'active text-success fw-bold' : 'text-white' }}"
+                   href="{{ route('clases.index') }}">Clases</a>
+            </li>
+            <li class="nav-item me-4">
                 <a class="nav-link {{ request()->routeIs('torneos.index') ? 'active text-success fw-bold' : 'text-white' }}"
                    href="{{ route('torneos.index') }}">Torneos</a>
             </li>
