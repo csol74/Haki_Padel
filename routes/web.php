@@ -97,4 +97,35 @@ Route::middleware(['auth', 'limpiar.reservas'])->group(function () {
         ->name('mercadopago.success');
     Route::get('/mercadopago/failure', [MercadoPagoController::class, 'failure'])
         ->name('mercadopago.failure');
+
+
+
+
+    // RUTAS PARA TORNEOS CON MERCADOPAGO
+// Agregar estas rutas a tu archivo routes/web.php
+
+// Rutas de torneos (ya existentes, pero asegúrate de que estén así)
+Route::middleware(['auth', 'limpiar.reservas'])->group(function () {
+    Route::get('/torneos', [TorneoController::class, 'index'])->name('torneos.index');
+    Route::get('/torneos/{id}', [TorneoController::class, 'show'])->name('torneos.show');
+    Route::post('/torneos/inscribir', [TorneoController::class, 'store'])->name('torneos.inscribir');
+    Route::post('/torneos/cancelar-inscripcion', [TorneoController::class, 'cancelarInscripcion'])->name('torneos.cancelar');
 });
+
+// Rutas de MercadoPago para reservas (ya existentes)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/mercadopago/success', [MercadoPagoController::class, 'success'])->name('mercadopago.success');
+    Route::get('/mercadopago/failure', [MercadoPagoController::class, 'failure'])->name('mercadopago.failure');
+    Route::get('/mercadopago/confirmar', [MercadoPagoController::class, 'confirmar'])->name('mercadopago.confirmar');
+});
+
+// NUEVAS RUTAS para MercadoPago de torneos (agregar estas)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/mercadopago/torneo/confirmar', [MercadoPagoController::class, 'confirmarTorneo'])->name('mercadopago.torneo.confirmar');
+    Route::get('/mercadopago/torneo/failure', [MercadoPagoController::class, 'failureTorneo'])->name('mercadopago.torneo.failure');
+});
+
+
+
+
+    });

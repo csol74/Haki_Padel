@@ -6,218 +6,271 @@
 
 @section('content')
 <div class="container-fluid p-0" style="background-color:#E8F3F5; min-height:100vh;">
-
     <div class="container py-4">
-        <!-- Título -->
-        <div class="text-center mb-4">
-            <h1 class="page-title">Torneos de Pádel</h1>
-            <p class="text-muted">Únete a nuestros emocionantes torneos y compite con los mejores</p>
-        </div>
+        
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb-custom mb-4">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ route('home') }}">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('torneos.index') }}">Torneos</a></li>
+                <li class="breadcrumb-item active">{{ $torneo->nombre }}</li>
+            </ol>
+        </nav>
 
-        <!-- Filtros -->
-        <div class="card filters-card mb-4">
-            <div class="card-body">
-                <form method="GET" action="{{ route('torneos.index') }}">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Categoría</label>
-                            <select class="form-select" name="categoria">
-                                <option value="">Todas las categorías</option>
-                                <option value="principiante" {{ request('categoria') == 'principiante' ? 'selected' : '' }}>Principiante</option>
-                                <option value="intermedio" {{ request('categoria') == 'intermedio' ? 'selected' : '' }}>Intermedio</option>
-                                <option value="avanzado" {{ request('categoria') == 'avanzado' ? 'selected' : '' }}>Avanzado</option>
-                                <option value="profesional" {{ request('categoria') == 'profesional' ? 'selected' : '' }}>Profesional</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Estado</label>
-                            <select class="form-select" name="estado">
-                                <option value="">Todos los estados</option>
-                                <option value="abierto" {{ request('estado') == 'abierto' ? 'selected' : '' }}>Abierto</option>
-                                <option value="en-curso" {{ request('estado') == 'en-curso' ? 'selected' : '' }}>En curso</option>
-                                <option value="finalizado" {{ request('estado') == 'finalizado' ? 'selected' : '' }}>Finalizado</option>
-                                <option value="cerrado" {{ request('estado') == 'cerrado' ? 'selected' : '' }}>Cerrado</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Desde fecha</label>
-                            <input type="date" class="form-control" name="fecha_inicio" value="{{ request('fecha_inicio') }}">
-                        </div>
-                        <div class="col-md-3">
-                            <button type="submit" class="btn btn-success w-100 fw-bold">
-                                <i class="bi bi-search me-1"></i>Buscar
-                            </button>
-                        </div>
-                    </div>
-                </form>
+        <!-- Mensajes de éxito/error -->
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        </div>
+        @endif
+        
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
 
-        <!-- Grid de Torneos -->
-        <div class="row g-4">
-            @forelse($torneos as $torneo)
-            <div class="col-lg-4 col-md-6">
-                <div class="card tournament-card">
-                    <div class="tournament-header">
-                        <div class="tournament-category">{{ ucfirst($torneo->categoria ?? 'General') }}</div>
-                        <div class="tournament-status status-{{ str_replace(' ', '-', strtolower($torneo->estado ?? 'abierto')) }}">
-                            @if($torneo->estado == 'abierto')
-                                <i class="bi bi-check-circle me-1"></i>Abierto
-                            @elseif($torneo->estado == 'en-curso')
-                                <i class="bi bi-play-circle me-1"></i>En Curso
-                            @elseif($torneo->estado == 'cerrado')
-                                <i class="bi bi-x-circle me-1"></i>Cerrado
-                            @else
-                                <i class="bi bi-flag me-1"></i>Finalizado
-                            @endif
-                        </div>
-                        <i class="bi bi-trophy tournament-icon"></i>
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title fw-bold">{{ $torneo->nombre ?? 'Torneo de Pádel' }}</h5>
-
-                        <!-- Fecha del torneo -->
-                        <div class="tournament-date">
-                            <div class="date-day">{{ date('d', strtotime($torneo->fecha_inicio ?? now())) }}</div>
-                            <div class="date-month">{{ date('M Y', strtotime($torneo->fecha_inicio ?? now())) }}</div>
-                        </div>
-
-                        <p class="text-muted small mb-3">
-                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ $torneo->ubicacion ?? 'Hakipadel Club' }}
+        <!-- Hero Section -->
+        <div class="tournament-hero mb-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="display-4 fw-bold mb-3">{{ $torneo->nombre }}</h1>
+                        <p class="lead mb-3">
+                            <i class="bi bi-geo-alt-fill me-2"></i>
+                            {{ $torneo->ubicacion ?? 'Hakipadel Club' }}
                         </p>
-
-                        <!-- Información de participantes -->
-                        <div class="participants-info">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <small class="text-muted">Participantes</small>
-                                    <div class="fw-bold">{{ $torneo->participantes_actuales ?? 0 }}/{{ $torneo->max_participantes ?? 16 }}</div>
-                                </div>
-                                <div class="text-end">
-                                    <small class="text-muted">Premio</small>
-                                    <div class="prize-amount">${{ number_format($torneo->premio ?? 500000, 0, ',', '.') }}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Fechas importantes -->
-                        <div class="mb-3">
-                            <small class="text-muted d-block">
-                                <i class="bi bi-calendar me-1"></i>
-                                Inicio: {{ date('d/m/Y', strtotime($torneo->fecha_inicio ?? now())) }}
-                            </small>
-                            <small class="text-muted d-block">
-                                <i class="bi bi-clock me-1"></i>
-                                Inscripciones hasta: {{ date('d/m/Y', strtotime($torneo->fecha_limite_inscripcion ?? now())) }}
-                            </small>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('torneos.show', $torneo->id) }}" class="btn btn-outline-primary flex-fill">
-                                <i class="bi bi-eye me-1"></i>Ver Detalles
-                            </a>
-                            @if($torneo->estado == 'abierto')
-                                <button class="btn btn-inscribir text-white flex-fill" data-bs-toggle="modal" data-bs-target="#inscripcionModal{{ $torneo->id }}">
-                                    <i class="bi bi-trophy me-1"></i>Inscribirse
-                                </button>
+                        <div class="d-flex flex-wrap gap-3">
+                            <span class="badge bg-white text-dark px-3 py-2">
+                                <i class="bi bi-trophy me-1"></i>{{ ucfirst($torneo->categoria ?? 'mixto') }}
+                            </span>
+                            @if($torneo->estado == 'inscripciones_abiertas')
+                                <span class="badge bg-success px-3 py-2">
+                                    <i class="bi bi-check-circle me-1"></i>Inscripciones Abiertas
+                                </span>
+                            @elseif($torneo->estado == 'en_curso')
+                                <span class="badge bg-warning text-dark px-3 py-2">
+                                    <i class="bi bi-play-circle me-1"></i>En Curso
+                                </span>
                             @else
-                                <button class="btn btn-secondary flex-fill" disabled>
-                                    @if($torneo->estado == 'cerrado')
-                                        <i class="bi bi-x-circle me-1"></i>Cerrado
-                                    @elseif($torneo->estado == 'en-curso')
-                                        <i class="bi bi-play-circle me-1"></i>En Curso
-                                    @else
-                                        <i class="bi bi-flag me-1"></i>Finalizado
-                                    @endif
-                                </button>
+                                <span class="badge bg-secondary px-3 py-2">
+                                    <i class="bi bi-x-circle me-1"></i>Cerrado
+                                </span>
                             @endif
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Modal de Inscripción -->
-            @if($torneo->estado == 'abierto')
-            <div class="modal fade" id="inscripcionModal{{ $torneo->id }}" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Inscribirse al Torneo</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <form method="POST" action="{{ route('torneos.inscribir') }}">
-                            @csrf
-                            <div class="modal-body">
-                                <input type="hidden" name="torneo_id" value="{{ $torneo->id }}">
-                                <h6 class="fw-bold">{{ $torneo->nombre }}</h6>
-                                <p class="text-muted">{{ $torneo->descripcion ?? 'Torneo de pádel emocionante con grandes premios.' }}</p>
-
-                                <div class="alert alert-info">
-                                    <i class="bi bi-info-circle me-2"></i>
-                                    <strong>Información importante:</strong><br>
-                                    • La inscripción es gratuita<br>
-                                    • Fecha límite: {{ date('d/m/Y', strtotime($torneo->fecha_limite_inscripcion ?? now())) }}<br>
-                                    • Premio: ${{ number_format($torneo->premio ?? 500000, 0, ',', '.') }}<br>
-                                    • Categoría: {{ ucfirst($torneo->categoria ?? 'General') }}
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-trophy me-1"></i>Confirmar Inscripción
-                                </button>
-                            </div>
-                        </form>
+                    <div class="col-md-4 text-center">
+                        <i class="bi bi-trophy display-1 opacity-50"></i>
                     </div>
                 </div>
             </div>
-            @endif
-            @empty
-            <div class="col-12">
-                <div class="text-center py-5">
-                    <i class="bi bi-trophy display-1 text-muted"></i>
-                    <h4 class="text-muted mt-3">No se encontraron torneos</h4>
-                    <p class="text-muted">Intenta modificar los filtros de búsqueda o vuelve más tarde</p>
-                </div>
-            </div>
-            @endforelse
         </div>
 
-        <!-- Información adicional -->
-        <div class="row mt-5">
-            <div class="col-md-6">
-                <div class="card border-0 bg-white shadow-sm">
-                    <div class="card-body">
-                        <h5 class="fw-bold text-primary mb-3">
-                            <i class="bi bi-info-circle me-2"></i>Información de Torneos
-                        </h5>
-                        <ul class="list-unstyled">
-                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Inscripción gratuita para todos los torneos</li>
-                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Premios en efectivo para los ganadores</li>
-                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Categorías para todos los niveles</li>
-                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Arbitraje profesional incluido</li>
-                        </ul>
+        <div class="row">
+            <!-- Información Principal -->
+            <div class="col-lg-8 mb-4">
+                <!-- Descripción -->
+                <div class="info-card p-4 mb-4">
+                    <h4 class="mb-3 text-primary">
+                        <i class="bi bi-info-circle me-2"></i>Descripción del Torneo
+                    </h4>
+                    <p class="text-muted">
+                        {{ $torneo->descripcion ?: 'Únete a este emocionante torneo de pádel donde podrás demostrar tus habilidades y competir con los mejores jugadores. Gran ambiente, premios atractivos y la oportunidad de formar parte de nuestra comunidad de pádel.' }}
+                    </p>
+                </div>
+
+                <!-- Estadísticas -->
+                <div class="row mb-4">
+                    <div class="col-md-3 col-6">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ $participantesActuales }}</div>
+                            <div class="stats-label">Inscritos</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ $torneo->cantidad_max_participantes ?? '∞' }}</div>
+                            <div class="stats-label">Cupos</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stats-card">
+                            <div class="stats-number">${{ number_format($torneo->premio ?? 500000, 0, ',', '.') }}</div>
+                            <div class="stats-label">Premio</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ \Carbon\Carbon::parse($torneo->fecha_inicio)->diffInDays(now()) }}</div>
+                            <div class="stats-label">Días restantes</div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Fechas Importantes -->
+                <div class="info-card p-4 mb-4">
+                    <h4 class="mb-3 text-primary">
+                        <i class="bi bi-calendar-week me-2"></i>Fechas Importantes
+                    </h4>
+                    <div class="timeline-item">
+                        <h6 class="fw-bold">Cierre de Inscripciones</h6>
+                        <p class="text-muted mb-0">{{ \Carbon\Carbon::parse($torneo->fecha_inscripcion_limite)->format('d/m/Y') }}</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h6 class="fw-bold">Inicio del Torneo</h6>
+                        <p class="text-muted mb-0">{{ \Carbon\Carbon::parse($torneo->fecha_inicio)->format('d/m/Y') }}</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h6 class="fw-bold">Final del Torneo</h6>
+                        <p class="text-muted mb-0">{{ \Carbon\Carbon::parse($torneo->fecha_fin)->format('d/m/Y') }}</p>
+                    </div>
+                </div>
+
+                <!-- Lista de Participantes -->
+                <div class="info-card p-4">
+                    <h4 class="mb-3 text-primary">
+                        <i class="bi bi-people me-2"></i>
+                        Participantes ({{ $participantesActuales }}/{{ $torneo->cantidad_max_participantes ?? '∞' }})
+                    </h4>
+                    
+                    @if($torneo->participantes->count() > 0)
+                        <div class="list-group">
+                            @foreach($torneo->participantes->where('pivot.estado', '!=', 'retirado') as $participante)
+                                <div class="list-group-item d-flex align-items-center">
+                                    <div class="participant-avatar">
+                                        {{ strtoupper(substr($participante->name, 0, 1)) }}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-0">
+                                            {{ $participante->name }}
+                                            @if($participante->id == Auth::id())
+                                                <span class="badge bg-primary ms-2">Tú</span>
+                                            @endif
+                                        </h6>
+                                        <small class="text-muted">
+                                            Inscrito el {{ \Carbon\Carbon::parse($participante->pivot->created_at)->format('d/m/Y') }}
+                                        </small>
+                                    </div>
+                                    @if($participante->pivot->estado == 'confirmado')
+                                        <span class="badge bg-success">Confirmado</span>
+                                    @else
+                                        <span class="badge bg-info">Inscrito</span>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            No hay participantes inscritos todavía. ¡Sé el primero!
+                        </div>
+                    @endif
+                </div>
             </div>
-            <div class="col-md-6">
-                <div class="card border-0 bg-white shadow-sm">
-                    <div class="card-body">
-                        <h5 class="fw-bold text-primary mb-3">
-                            <i class="bi bi-trophy me-2"></i>Próximos Eventos
-                        </h5>
-                        <div class="timeline-item">
-                            <h6 class="fw-bold">Torneo Mensual</h6>
-                            <small class="text-muted">Cada primer sábado del mes</small>
+
+            <!-- Panel Lateral -->
+            <div class="col-lg-4">
+                <!-- Acciones de Inscripción -->
+                <div class="info-card p-4 mb-4 position-sticky" style="top: 20px;">
+                    <h5 class="mb-3 text-primary">
+                        <i class="bi bi-lightning me-2"></i>Acciones Rápidas
+                    </h5>
+                    
+                    @auth
+                        @if($estaInscrito)
+                            <div class="alert alert-success mb-3">
+                                <i class="bi bi-check-circle me-2"></i>
+                                <strong>¡Ya estás inscrito!</strong>
+                            </div>
+                            
+                            @if($torneo->estado == 'inscripciones_abiertas' || $torneo->estado == 'planificacion')
+                                <form action="{{ route('torneos.cancelar') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="torneo_id" value="{{ $torneo->id }}">
+                                    <button type="submit" class="btn btn-danger w-100" 
+                                            onclick="return confirm('¿Estás seguro de que deseas cancelar tu inscripción?')">
+                                        <i class="bi bi-x-circle me-2"></i>Cancelar Inscripción
+                                    </button>
+                                </form>
+                            @endif
+                        @elseif($puedeInscribirse)
+                            @if($lugaresDisponibles !== null)
+                                <div class="alert alert-warning mb-3">
+                                    <small>
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        Quedan {{ $lugaresDisponibles }} lugares
+                                    </small>
+                                </div>
+                            @endif
+                            
+                            <form action="{{ route('torneos.inscribir') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="torneo_id" value="{{ $torneo->id }}">
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="bi bi-trophy me-2"></i>Inscribirme Ahora
+                                </button>
+                            </form>
+
+                            @if($torneo->precio_inscripcion > 0)
+                                <div class="alert alert-info mt-3 mb-0">
+                                    <small>
+                                        <i class="bi bi-cash me-1"></i>
+                                        Costo: ${{ number_format($torneo->precio_inscripcion, 0, ',', '.') }}
+                                    </small>
+                                </div>
+                            @else
+                                <div class="text-center mt-3">
+                                    <span class="badge bg-success">INSCRIPCIÓN GRATUITA</span>
+                                </div>
+                            @endif
+                        @else
+                            @if($torneo->estado != 'inscripciones_abiertas')
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    Las inscripciones están cerradas
+                                </div>
+                            @elseif($lugaresDisponibles === 0)
+                                <div class="alert alert-danger">
+                                    <i class="bi bi-x-circle me-2"></i>
+                                    Torneo completo
+                                </div>
+                            @endif
+                        @endif
+                    @else
+                        <div class="alert alert-info mb-3">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Inicia sesión para inscribirte
                         </div>
-                        <div class="timeline-item">
-                            <h6 class="fw-bold">Copa Hakipadel</h6>
-                            <small class="text-muted">Torneo anual - Diciembre 2025</small>
-                        </div>
-                        <div class="alert alert-success mt-3">
-                            <i class="bi bi-whatsapp me-2"></i>
+                        <a href="{{ route('login') }}" class="btn btn-primary w-100">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+                        </a>
+                    @endauth
+
+                    <hr>
+
+                    <!-- Información del Organizador -->
+                    <h6 class="mb-3">Información del Torneo</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-person-badge text-primary me-2"></i>
+                            <strong>Organizador:</strong> {{ $torneo->organizador->name }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-whatsapp text-success me-2"></i>
                             <strong>WhatsApp:</strong> +57 311 217 2009
-                        </div>
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-envelope text-info me-2"></i>
+                            <strong>Email:</strong> info@hakipadel.com
+                        </li>
+                    </ul>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{{ route('torneos.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Ver Todos los Torneos
+                        </a>
                     </div>
                 </div>
             </div>

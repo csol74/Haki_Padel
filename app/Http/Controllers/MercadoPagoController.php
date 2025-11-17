@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\Reserva;
+use App\Models\Torneo;
 use App\Models\Pago;
 use App\Models\Notificacion;
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Exceptions\MPApiException;
+use Illuminate\Support\Facades\DB;
 
 class MercadoPagoController extends Controller
 {
@@ -20,82 +22,156 @@ class MercadoPagoController extends Controller
     }
 
     /**
-     * Crear la preferencia y redirigir a MercadoPago
+     * Crear la preferencia y redirigir a MercadoPago (RESERVAS)
      */
     public function createPreference($reserva)
-{
-    try {
-        if (!$reserva instanceof Reserva) {
-            $reserva = Reserva::findOrFail($reserva);
+    {
+        try {
+            if (!$reserva instanceof Reserva) {
+                $reserva = Reserva::findOrFail($reserva);
+            }
+
+            $reserva->load('cancha');
+
+            if (!$reserva->cancha) {
+                return back()->with('error', 'La reserva no tiene una cancha asociada.');
+            }
+
+            $precioOriginal = $reserva->cancha->precio_hora ?? 20000;
+            $precio = (int) round((float) $precioOriginal);
+            $canchaNombre = $reserva->cancha->nombre ?? 'Cancha';
+
+            $client = new PreferenceClient();
+
+            $preferenceData = [
+                "items" => [
+                    [
+                        "title" => "Reserva - {$canchaNombre}",
+                        "quantity" => 1,
+                        "unit_price" => $precio,
+                        "currency_id" => "COP",
+                    ]
+                ],
+                "back_urls" => [
+                    "success" => route('mercadopago.confirmar', ['reserva_id' => $reserva->id]),
+                    "failure" => route('mercadopago.failure'),
+                    "pending" => route('mercadopago.confirmar', ['reserva_id' => $reserva->id]),
+                ],
+                "external_reference" => "reserva-{$reserva->id}",
+            ];
+
+            Log::info('Creando preferencia', $preferenceData);
+
+            /** @var \MercadoPago\Resources\Preference $preference */
+            $preference = $client->create($preferenceData);
+
+            // Guardar pago
+            Pago::create([
+                'user_id' => $reserva->user_id,
+                'concepto' => 'reserva',
+                'id_referencia' => $preference->id,
+                'monto' => $precio,
+                'metodo_pago' => 'mercadopago',
+                'estado' => 'pendiente',
+            ]);
+
+            $initPoint = $preference->init_point ?? $preference->sandbox_init_point;
+
+            if (!$initPoint) {
+                return back()->with('error', 'No se pudo generar el enlace de pago.');
+            }
+
+            // Guardar en sesión para después
+            session(['reserva_pendiente_id' => $reserva->id]);
+
+            return redirect()->away($initPoint);
+
+        } catch (MPApiException $e) {
+            $responseContent = $e->getApiResponse()->getContent();
+            Log::error('MPApiException', ['response' => $responseContent]);
+            return back()->with('error', 'Error al procesar el pago.');
+
+        } catch (\Exception $e) {
+            Log::error('Exception', ['message' => $e->getMessage()]);
+            return back()->with('error', 'Error: ' . $e->getMessage());
         }
-
-        $reserva->load('cancha');
-
-        if (!$reserva->cancha) {
-            return back()->with('error', 'La reserva no tiene una cancha asociada.');
-        }
-
-        $precioOriginal = $reserva->cancha->precio_hora ?? 20000;
-        $precio = (int) round((float) $precioOriginal);
-        $canchaNombre = $reserva->cancha->nombre ?? 'Cancha';
-
-        $client = new PreferenceClient();
-
-        $preferenceData = [
-            "items" => [
-                [
-                    "title" => "Reserva - {$canchaNombre}",
-                    "quantity" => 1,
-                    "unit_price" => $precio,
-                    "currency_id" => "COP",
-                ]
-            ],
-            "back_urls" => [
-                "success" => route('mercadopago.confirmar', ['reserva_id' => $reserva->id]),
-                "failure" => route('mercadopago.failure'),
-                "pending" => route('mercadopago.confirmar', ['reserva_id' => $reserva->id]),
-            ],
-            "external_reference" => "reserva-{$reserva->id}",
-        ];
-
-        Log::info('Creando preferencia', $preferenceData);
-
-        $preference = $client->create($preferenceData);
-
-        // Guardar pago
-        Pago::create([
-            'user_id' => $reserva->user_id,
-            'concepto' => 'reserva',
-            'id_referencia' => $preference->id,
-            'monto' => $precio,
-            'metodo_pago' => 'mercadopago',
-            'estado' => 'pendiente',
-        ]);
-
-        $initPoint = $preference->init_point ?? $preference->sandbox_init_point;
-
-        if (!$initPoint) {
-            return back()->with('error', 'No se pudo generar el enlace de pago.');
-        }
-
-        // Guardar en sesión para después
-        session(['reserva_pendiente_id' => $reserva->id]);
-
-        return redirect()->away($initPoint);
-
-    } catch (MPApiException $e) {
-        $responseContent = $e->getApiResponse()->getContent();
-        Log::error('MPApiException', ['response' => $responseContent]);
-        return back()->with('error', 'Error al procesar el pago.');
-
-    } catch (\Exception $e) {
-        Log::error('Exception', ['message' => $e->getMessage()]);
-        return back()->with('error', 'Error: ' . $e->getMessage());
     }
-}
 
     /**
-     * Redirección luego del pago exitoso
+     * Crear la preferencia y redirigir a MercadoPago (TORNEOS)
+     */
+    public function createPreferenceTorneo($torneo)
+    {
+        try {
+            if (!$torneo instanceof Torneo) {
+                $torneo = Torneo::findOrFail($torneo);
+            }
+
+            $torneo->load('organizador');
+
+            // Obtener el precio de inscripción del torneo
+            $precioOriginal = $torneo->precio_inscripcion ?? 0;
+            $precio = (int) round((float) $precioOriginal);
+            $torneoNombre = $torneo->nombre ?? 'Torneo de Pádel';
+
+            $client = new PreferenceClient();
+
+            $preferenceData = [
+                "items" => [
+                    [
+                        "title" => "Inscripción - {$torneoNombre}",
+                        "quantity" => 1,
+                        "unit_price" => $precio,
+                        "currency_id" => "COP",
+                    ]
+                ],
+                "back_urls" => [
+                    "success" => route('mercadopago.torneo.confirmar', ['torneo_id' => $torneo->id]),
+                    "failure" => route('mercadopago.torneo.failure'),
+                    "pending" => route('mercadopago.torneo.confirmar', ['torneo_id' => $torneo->id]),
+                ],
+                "external_reference" => "torneo-{$torneo->id}",
+            ];
+
+            Log::info('Creando preferencia de torneo', $preferenceData);
+
+            /** @var \MercadoPago\Resources\Preference $preference */
+            $preference = $client->create($preferenceData);
+
+            // Guardar pago
+            Pago::create([
+                'user_id' => auth()->id(),
+                'concepto' => 'torneo',
+                'id_referencia' => $preference->id,
+                'monto' => $precio,
+                'metodo_pago' => 'mercadopago',
+                'estado' => 'pendiente',
+            ]);
+
+            $initPoint = $preference->init_point ?? $preference->sandbox_init_point;
+
+            if (!$initPoint) {
+                return back()->with('error', 'No se pudo generar el enlace de pago.');
+            }
+
+            // Guardar en sesión para después
+            session(['torneo_pendiente_id' => $torneo->id]);
+
+            return redirect()->away($initPoint);
+
+        } catch (MPApiException $e) {
+            $responseContent = $e->getApiResponse()->getContent();
+            Log::error('MPApiException en torneo', ['response' => $responseContent]);
+            return back()->with('error', 'Error al procesar el pago.');
+
+        } catch (\Exception $e) {
+            Log::error('Exception en torneo', ['message' => $e->getMessage()]);
+            return back()->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Redirección luego del pago exitoso (RESERVAS)
      */
     public function success(Request $request)
     {
@@ -140,6 +216,7 @@ class MercadoPagoController extends Controller
 
                 // Consultar la API de MercadoPago
                 $client = new PaymentClient();
+                /** @var \MercadoPago\Resources\Payment $payment */
                 $payment = $client->get($realPaymentId);
 
                 Log::info('Verificación de pago', [
@@ -216,11 +293,167 @@ class MercadoPagoController extends Controller
             return redirect()->route('home')->with('warning',
                 'Tu pago está pendiente de confirmación.');
         }
-        return redirect()->route('mercadopago.confirmar', $request->all());
     }
 
     /**
-     * Redirección si el pago falla o se cancela
+     * Confirmar inscripción al torneo después de regresar de MercadoPago
+     */
+    public function confirmarTorneo(Request $request)
+    {
+        $torneoId = $request->get('torneo_id') ?? session('torneo_pendiente_id');
+        $paymentId = $request->get('payment_id');
+        $status = $request->get('status');
+        $preferenceId = $request->get('preference_id');
+        $collectionId = $request->get('collection_id');
+        $collectionStatus = $request->get('collection_status');
+
+        Log::info('Confirmando inscripción a torneo', [
+            'torneo_id' => $torneoId,
+            'payment_id' => $paymentId,
+            'status' => $status,
+            'all_params' => $request->all()
+        ]);
+
+        if (!$torneoId) {
+            return redirect()->route('torneos.index')->with('error', 'No se encontró el torneo.');
+        }
+
+        $torneo = Torneo::find($torneoId);
+
+        if (!$torneo) {
+            return redirect()->route('torneos.index')->with('error', 'Torneo no encontrado.');
+        }
+
+        // Buscar el pago asociado
+        $pago = Pago::where('user_id', auth()->id())
+                    ->where('concepto', 'torneo')
+                    ->where('estado', 'pendiente')
+                    ->latest()
+                    ->first();
+
+        // Verificar el pago si es posible
+        $pagoVerificado = false;
+
+        try {
+            if ($paymentId || $collectionId) {
+                $realPaymentId = $paymentId ?? $collectionId;
+                $client = new PaymentClient();
+                /** @var \MercadoPago\Resources\Payment $payment */
+                $payment = $client->get($realPaymentId);
+
+                Log::info('Verificación de pago de torneo', [
+                    'payment_id' => $realPaymentId,
+                    'status' => $payment->status,
+                ]);
+
+                if ($payment->status === 'approved') {
+                    $pagoVerificado = true;
+                }
+            } else {
+                // Fallback: confiar en el status de la URL
+                if ($status === 'approved' || $collectionStatus === 'approved') {
+                    $pagoVerificado = true;
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Error al verificar pago de torneo', ['error' => $e->getMessage()]);
+            
+            // Fallback
+            if ($status === 'approved' || $collectionStatus === 'approved') {
+                $pagoVerificado = true;
+            }
+        }
+
+        // Solo procesar si el pago fue verificado
+        if ($pagoVerificado) {
+            try {
+                DB::beginTransaction();
+
+                // Actualizar pago
+                if ($pago && $pago->estado !== 'completado') {
+                    $pago->estado = 'completado';
+                    $pago->save();
+                }
+
+                // Verificar si ya está inscrito
+                $yaInscrito = $torneo->participantes->contains(auth()->id());
+
+                if (!$yaInscrito) {
+                    // Inscribir al usuario
+                    $torneo->participantes()->attach(auth()->id(), [
+                        'estado' => 'confirmado',
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+
+                    Log::info('Usuario inscrito en torneo', [
+                        'user_id' => auth()->id(),
+                        'torneo_id' => $torneo->id
+                    ]);
+                }
+
+                // Crear notificación (evitar duplicados)
+                $notificacionExiste = Notificacion::where('user_id', auth()->id())
+                    ->where('tipo', 'torneo')
+                    ->where('contenido', 'LIKE', '%inscripción confirmada%')
+                    ->where('created_at', '>', now()->subMinutes(5))
+                    ->exists();
+
+                if (!$notificacionExiste) {
+                    Notificacion::create([
+                        'user_id' => auth()->id(),
+                        'titulo' => 'Inscripción Confirmada',
+                        'contenido' => "Tu inscripción al torneo '{$torneo->nombre}' ha sido confirmada. ¡Buena suerte!",
+                        'tipo' => 'torneo',
+                        'leida' => false,
+                    ]);
+                }
+
+                DB::commit();
+
+                session()->forget('torneo_pendiente_id');
+
+                Log::info('Inscripción a torneo confirmada exitosamente', ['torneo_id' => $torneo->id]);
+
+                return view('mercadopago.torneo-success', [
+                    'torneo' => $torneo,
+                    'pago' => $pago,
+                ]);
+
+            } catch (\Exception $e) {
+                DB::rollback();
+                Log::error('Error al confirmar inscripción a torneo', ['error' => $e->getMessage()]);
+                return redirect()->route('torneos.index')
+                    ->with('error', 'Ocurrió un error al confirmar tu inscripción.');
+            }
+        } else {
+            // Pago no verificado
+            Log::warning('Pago de torneo no aprobado', [
+                'torneo_id' => $torneoId,
+                'payment_id' => $paymentId,
+                'status' => $status,
+            ]);
+
+            return redirect()->route('torneos.index')->with('warning',
+                'Tu pago está pendiente de confirmación. Te notificaremos cuando se complete.');
+        }
+    }
+
+    /**
+     * Redirección si el pago de torneo falla o se cancela
+     */
+    public function failureTorneo(Request $request)
+    {
+        Log::info('Pago de torneo fallido', $request->all());
+
+        session()->forget('torneo_pendiente_id');
+
+        return redirect()->route('torneos.index')
+            ->with('error', 'El pago fue cancelado o falló. Puedes intentarlo nuevamente.');
+    }
+
+    /**
+     * Redirección si el pago falla o se cancela (RESERVAS)
      */
     public function failure(Request $request)
     {
@@ -229,9 +462,10 @@ class MercadoPagoController extends Controller
         return redirect()->route('home')
             ->with('error', 'El pago fue cancelado o falló. Puedes intentarlo nuevamente.');
     }
+
     /**
- * Confirmar pago después de regresar de MercadoPago
- */
+     * Confirmar pago después de regresar de MercadoPago (RESERVAS)
+     */
     public function confirmar(Request $request)
     {
         $reservaId = $request->get('reserva_id') ?? session('reserva_pendiente_id');
