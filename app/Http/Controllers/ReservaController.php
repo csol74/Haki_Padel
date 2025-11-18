@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Reserva;
 use App\Models\Notificacion;
+use App\Models\Cancha;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Console\Scheduling\Schedule;
@@ -21,6 +23,25 @@ class ReservaController extends Controller
 
         [$horaInicio, $horaFin] = explode('-', $validated['horario']);
 
+        //Calcular duración y precios
+        $horaInicioTimestamp = strtotime($horaInicio);
+        $horaFinTimestamp = strtotime($horaFin);
+        $duracionHoras = ($horaFinTimestamp - $horaInicioTimestamp) / 3600;
+
+        // Obtener cancha y precio base
+        $cancha = Cancha::find($validated['cancha_id']);
+        $precioBase = $cancha->precio_hora * $duracionHoras;
+
+        // Aplicar descuento si es socio
+        $usuario = Auth::user();
+        $descuento = 0;
+        $precioFinal = $precioBase;
+
+        if ($usuario->role === 'socio') {
+            $descuento = $precioBase * 0.20; // 20% de descuento
+            $precioFinal = $precioBase - $descuento;
+        }
+
         $yaReservada = Reserva::where('id_cancha', $validated['cancha_id'])
             ->where('fecha', $validated['fecha'])
             ->where('hora_inicio', $horaInicio)
@@ -30,7 +51,7 @@ class ReservaController extends Controller
             return back()->with('error', 'Este horario ya está reservado. Intenta con otro.');
         }
 
-        // Crear la reserva con estado pendiente
+        //  ACTUALIZADO: Crear reserva con campos de precio
         $reserva = Reserva::create([
             'user_id' => Auth::id(),
             'id_cancha' => $validated['cancha_id'],
@@ -38,6 +59,10 @@ class ReservaController extends Controller
             'hora_inicio' => $horaInicio,
             'hora_fin' => $horaFin,
             'numero_jugadores' => $validated['jugadores'],
+            'precio_base' => $precioBase,
+            'descuento' => $descuento,
+            'precio_final' => $precioFinal,
+            'duracion_horas' => $duracionHoras,
             'estado' => 'pendiente',
         ]);
 
@@ -57,7 +82,7 @@ class ReservaController extends Controller
     // Nueva función para mostrar la pantalla de pago
     public function pago($id)
     {
-        $reserva = Reserva::findOrFail($id);
+        $reserva = Reserva::with('cancha')->findOrFail($id);
         return view('reservas.pago', compact('reserva'));
     }
 

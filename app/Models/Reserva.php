@@ -16,22 +16,30 @@ class Reserva extends Model
         'hora_inicio',
         'hora_fin',
         'numero_jugadores',
-        'estado',
+        'precio_base',
+        'descuento',
+        'precio_final',
+        'duracion_horas',
+        'estado'
     ];
 
-    /**
-     * Relación con usuario
-     */
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+    protected $casts = [
+        'fecha' => 'date',
+        'precio_base' => 'decimal:2',
+        'descuento' => 'decimal:2',
+        'precio_final' => 'decimal:2',
+        'duracion_horas' => 'decimal:2'
+    ];
 
-    /**
-     * Relación con cancha
-     */
+    // Relación con cancha
     public function cancha()
     {
         return $this->belongsTo(Cancha::class, 'id_cancha');
+    }
+
+    // Relación con usuario
+    public function usuario()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

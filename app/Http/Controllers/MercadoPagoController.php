@@ -9,6 +9,7 @@ use App\Models\Torneo;
 use App\Models\ReservaClase;
 use App\Models\Pago;
 use App\Models\Notificacion;
+use App\Models\User;
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\Client\Payment\PaymentClient;
@@ -23,31 +24,38 @@ class MercadoPagoController extends Controller
     }
 
     /**
-     * Crear la preferencia y redirigir a MercadoPago (RESERVAS)
+     * Crear la preferencia y redirigir a MercadoPago (RESERVAS) - CON DESCUENTO PARA SOCIOS
      */
     public function createPreference($reserva)
     {
         try {
             if (!$reserva instanceof Reserva) {
-                $reserva = Reserva::findOrFail($reserva);
+                $reserva = Reserva::with('cancha', 'usuario')->findOrFail($reserva);
             }
-
-            $reserva->load('cancha');
 
             if (!$reserva->cancha) {
                 return back()->with('error', 'La reserva no tiene una cancha asociada.');
             }
 
-            $precioOriginal = $reserva->cancha->precio_hora ?? 20000;
-            $precio = (int) round((float) $precioOriginal);
+            // ⭐⭐ USAR EL PRECIO FINAL QUE YA INCLUYE DESCUENTO DE SOCIO ⭐⭐
+            $precioFinal = $reserva->precio_final;
+            $precio = (int) round((float) $precioFinal);
+
             $canchaNombre = $reserva->cancha->nombre ?? 'Cancha';
 
             $client = new PreferenceClient();
 
+            $itemTitle = "Reserva - {$canchaNombre}";
+
+            // ⭐⭐ INCLUIR INFORMACIÓN DE DESCUENTO EN LA DESCRIPCIÓN ⭐⭐
+            if ($reserva->descuento > 0) {
+                $itemTitle .= " (Descuento Socio Aplicado)";
+            }
+
             $preferenceData = [
                 "items" => [
                     [
-                        "title" => "Reserva - {$canchaNombre}",
+                        "title" => $itemTitle,
                         "quantity" => 1,
                         "unit_price" => $precio,
                         "currency_id" => "COP",
@@ -61,17 +69,24 @@ class MercadoPagoController extends Controller
                 "external_reference" => "reserva-{$reserva->id}",
             ];
 
-            Log::info('Creando preferencia', $preferenceData);
+            Log::info('Creando preferencia con descuento', [
+                'reserva_id' => $reserva->id,
+                'precio_base' => $reserva->precio_base,
+                'descuento' => $reserva->descuento,
+                'precio_final' => $reserva->precio_final,
+                'es_socio' => $reserva->usuario->role === 'socio'
+            ]);
 
             /** @var \MercadoPago\Resources\Preference $preference */
             $preference = $client->create($preferenceData);
 
-            // Guardar pago
+            // Guardar pago con el precio final (ya con descuento aplicado)
             Pago::create([
                 'user_id' => $reserva->user_id,
                 'concepto' => 'reserva',
                 'id_referencia' => $preference->id,
-                'monto' => $precio,
+                'monto' => $precioFinal, // ⭐⭐ GUARDAR EL PRECIO FINAL CON DESCUENTO ⭐⭐
+                'descuento_aplicado' => $reserva->descuento, // ⭐⭐ GUARDAR EL DESCUENTO APLICADO ⭐⭐
                 'metodo_pago' => 'mercadopago',
                 'estado' => 'pendiente',
             ]);
@@ -97,7 +112,6 @@ class MercadoPagoController extends Controller
             return back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
-
     /**
      * Crear la preferencia y redirigir a MercadoPago (TORNEOS)
      */
@@ -139,7 +153,7 @@ class MercadoPagoController extends Controller
             /** @var \MercadoPago\Resources\Preference $preference */
             $preference = $client->create($preferenceData);
 
-            // Guardar pago
+            // Guardar pago - CORREGIDO: auth()->id()
             Pago::create([
                 'user_id' => auth()->id(),
                 'concepto' => 'torneo',
@@ -211,7 +225,7 @@ class MercadoPagoController extends Controller
             /** @var \MercadoPago\Resources\Preference $preference */
             $preference = $client->create($preferenceData);
 
-            // Guardar pago
+            // Guardar pago - CORREGIDO: auth()->id()
             Pago::create([
                 'user_id' => auth()->id(),
                 'concepto' => 'clase',
@@ -397,7 +411,7 @@ class MercadoPagoController extends Controller
             return redirect()->route('torneos.index')->with('error', 'Torneo no encontrado.');
         }
 
-        // Buscar el pago asociado
+        // Buscar el pago asociado - CORREGIDO: auth()->id()
         $pago = Pago::where('user_id', auth()->id())
                     ->where('concepto', 'torneo')
                     ->where('estado', 'pendiente')
@@ -430,7 +444,7 @@ class MercadoPagoController extends Controller
             }
         } catch (\Exception $e) {
             Log::error('Error al verificar pago de torneo', ['error' => $e->getMessage()]);
-            
+
             // Fallback
             if ($status === 'approved' || $collectionStatus === 'approved') {
                 $pagoVerificado = true;
@@ -448,11 +462,11 @@ class MercadoPagoController extends Controller
                     $pago->save();
                 }
 
-                // Verificar si ya está inscrito
+                // Verificar si ya está inscrito - CORREGIDO: auth()->id()
                 $yaInscrito = $torneo->participantes->contains(auth()->id());
 
                 if (!$yaInscrito) {
-                    // Inscribir al usuario
+                    // Inscribir al usuario - CORREGIDO: auth()->id()
                     $torneo->participantes()->attach(auth()->id(), [
                         'estado' => 'confirmado',
                         'created_at' => now(),
@@ -465,7 +479,7 @@ class MercadoPagoController extends Controller
                     ]);
                 }
 
-                // Crear notificación (evitar duplicados)
+                // Crear notificación (evitar duplicados) - CORREGIDO: auth()->id()
                 $notificacionExiste = Notificacion::where('user_id', auth()->id())
                     ->where('tipo', 'torneo')
                     ->where('contenido', 'LIKE', '%inscripción confirmada%')
@@ -539,7 +553,7 @@ class MercadoPagoController extends Controller
             return redirect()->route('clases.index')->with('error', 'Reserva no encontrada.');
         }
 
-        // Buscar el pago asociado
+        // Buscar el pago asociado - CORREGIDO: auth()->id()
         $pago = Pago::where('user_id', auth()->id())
                     ->where('concepto', 'clase')
                     ->where('estado', 'pendiente')
@@ -571,7 +585,7 @@ class MercadoPagoController extends Controller
             }
         } catch (\Exception $e) {
             Log::error('Error al verificar pago de clase', ['error' => $e->getMessage()]);
-            
+
             if ($status === 'approved' || $collectionStatus === 'approved') {
                 $pagoVerificado = true;
             }
@@ -592,7 +606,7 @@ class MercadoPagoController extends Controller
                     $reserva->confirmar();
                 }
 
-                // Crear notificación
+                // Crear notificación - CORREGIDO: auth()->id()
                 $notificacionExiste = Notificacion::where('user_id', auth()->id())
                     ->where('tipo', 'clase')
                     ->where('contenido', 'LIKE', '%clase confirmada%')
@@ -659,7 +673,7 @@ class MercadoPagoController extends Controller
         Log::info('Pago de clase fallido', $request->all());
 
         $reservaId = session('reserva_clase_pendiente_id');
-        
+
         if ($reservaId) {
             // ELIMINAR la reserva temporal para liberar el horario
             $reserva = ReservaClase::find($reservaId);
@@ -669,7 +683,7 @@ class MercadoPagoController extends Controller
             }
         }
 
-        // También buscar por pago pendiente del usuario
+        // También buscar por pago pendiente del usuario - CORREGIDO: auth()->id()
         $pago = Pago::where('user_id', auth()->id())
                     ->where('concepto', 'clase')
                     ->where('estado', 'pendiente')

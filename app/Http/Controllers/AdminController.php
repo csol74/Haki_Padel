@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Models\SolicitudMembresia;
+use App\Models\Pago;
 
 class AdminController extends Controller
 {
@@ -14,28 +17,56 @@ class AdminController extends Controller
      */
     public function index()
     {
-        // Estadísticas generales
+       
         $stats = [
-            'total_usuarios' => DB::table('users')->where('role', 'cliente')->count(),
+            'total_usuarios' => User::whereIn('role', ['cliente', 'socio', 'profesor'])->count(),
             'total_reservas' => DB::table('reservas')->count(),
             'reservas_hoy' => DB::table('reservas')->whereDate('fecha', today())->count(),
             'total_torneos' => DB::table('torneos')->count(),
-            'ingresos_mes' => DB::table('pagos')
-                ->whereMonth('created_at', now()->month)
-                ->whereYear('created_at', now()->year)
-                ->where('estado', 'completado')
-                ->sum('monto'),
+            'ingresos_mes' => $this->calcularIngresosDelMes(),
+            'socios_activos' => User::where('role', 'socio')->count(),
         ];
 
         return view('admin.dashboard', compact('stats'));
+    }
+
+    /**
+     * CALCULAR INGRESOS INCLUYENDO MEMBRESÍAS
+     */
+    private function calcularIngresosDelMes()
+    {
+        $mesActual = now()->month;
+        $añoActual = now()->year;
+
+        // Ingresos de pagos de reservas
+        $ingresosReservas = Pago::whereMonth('created_at', $mesActual)
+            ->whereYear('created_at', $añoActual)
+            ->where('estado', 'completado')
+            ->sum('monto');
+
+        //  INGRESOS DE MEMBRESÍAS APROBADAS ESTE MES
+        $ingresosMembresias = SolicitudMembresia::where('estado', 'aprobada')
+            ->whereMonth('fecha_aprobacion', $mesActual)
+            ->whereYear('fecha_aprobacion', $añoActual)
+            ->sum('monto');
+
+        $total = $ingresosReservas + $ingresosMembresias;
+
+        \Log::info('=== INGRESOS CALCULADOS ===', [
+            'ingresos_reservas' => $ingresosReservas,
+            'ingresos_membresias' => $ingresosMembresias,
+            'total' => $total
+        ]);
+
+        return $total;
     }
 
     // ============= GESTIÓN DE USUARIOS =============
 
     public function usuarios()
     {
-        $usuarios = DB::table('users')
-            ->where('role', 'cliente')
+        // MOSTRAR TODOS LOS USUARIOS EXCEPTO ADMINS
+        $usuarios = User::where('role', '!=', 'admin')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -47,15 +78,19 @@ class AdminController extends Controller
         try {
             DB::beginTransaction();
 
-            // Verificar que no es un admin
-            $usuario = DB::table('users')->where('id', $id)->first();
+
+            $usuario = User::find($id);
+
+            if (!$usuario) {
+                return redirect()->back()->with('error', 'Usuario no encontrado.');
+            }
 
             if ($usuario->role === 'admin') {
                 return redirect()->back()->with('error', 'No puedes eliminar un administrador.');
             }
 
-            // Eliminar el usuario (las reservas se eliminarán en cascada si está configurado)
-            DB::table('users')->where('id', $id)->delete();
+            // Eliminar el usuario usando Eloquent
+            $usuario->delete();
 
             DB::commit();
             return redirect()->back()->with('success', 'Usuario eliminado exitosamente.');

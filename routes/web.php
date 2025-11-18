@@ -1,5 +1,6 @@
 <?php
-
+use App\Http\Controllers\MembresiaController;
+use App\Http\Controllers\SolicitudMembresiaController;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ClaseController;
@@ -45,6 +46,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Reportes
     Route::get('/reportes', [AdminController::class, 'reportes'])->name('reportes');
+
+    // Gestión de Membresías
+    Route::get('/membresias', [SolicitudMembresiaController::class, 'index'])->name('membresias.index');
+    Route::post('/membresias/{id}/aprobar', [SolicitudMembresiaController::class, 'aprobar'])->name('membresias.aprobar');
+    Route::post('/membresias/{id}/rechazar', [SolicitudMembresiaController::class, 'rechazar'])->name('membresias.rechazar');
+
 });
 
 // ========== RUTAS DE CLIENTES ==========
@@ -67,13 +74,20 @@ Route::middleware(['auth', 'limpiar.reservas'])->group(function () {
     Route::post('/torneos/inscribir', [TorneoController::class, 'store'])->name('torneos.inscribir');
     Route::post('/torneos/cancelar-inscripcion', [TorneoController::class, 'cancelarInscripcion'])->name('torneos.cancelar');
 
-    // Clases (NUEVO)
+    // Clases
     Route::get('/clases', [ClaseController::class, 'index'])->name('clases.index');
     Route::get('/clases/{id}', [ClaseController::class, 'show'])->name('clases.show');
     Route::get('/clases/horarios/disponibles', [ClaseController::class, 'obtenerHorariosDisponibles'])->name('clases.horarios');
     Route::post('/clases/calcular-precio', [ClaseController::class, 'calcularPrecio'])->name('clases.calcular-precio');
     Route::post('/clases/reservar', [ClaseController::class, 'reservar'])->name('clases.reservar');
     Route::post('/clases/{id}/cancelar', [ClaseController::class, 'cancelarReserva'])->name('clases.cancelar');
+
+     // Membresía
+    Route::get('/membresia', [MembresiaController::class, 'index'])->name('membresia.index');
+    Route::post('/membresia/pago', [MembresiaController::class, 'iniciarPago'])->name('membresia.pago');
+    Route::get('/membresia/success', [MembresiaController::class, 'success'])->name('membresia.success');
+    Route::get('/membresia/failure', [MembresiaController::class, 'failure'])->name('membresia.failure');
+    Route::get('/membresia/pending', [MembresiaController::class, 'pending'])->name('membresia.pending');
 
     // Perfil
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
@@ -100,17 +114,17 @@ Route::middleware(['auth', 'limpiar.reservas'])->group(function () {
 
 // ========== RUTAS DE MERCADOPAGO ==========
 Route::middleware(['auth'])->group(function () {
-    
+
     // Reservas de canchas
     Route::get('/reservas/{reserva}/pagar', [MercadoPagoController::class, 'createPreference'])->name('mercadopago.preference');
     Route::get('/mercadopago/confirmar', [MercadoPagoController::class, 'confirmar'])->name('mercadopago.confirmar');
     Route::get('/mercadopago/success', [MercadoPagoController::class, 'success'])->name('mercadopago.success');
     Route::get('/mercadopago/failure', [MercadoPagoController::class, 'failure'])->name('mercadopago.failure');
-    
+
     // Torneos
     Route::get('/mercadopago/torneo/confirmar', [MercadoPagoController::class, 'confirmarTorneo'])->name('mercadopago.torneo.confirmar');
     Route::get('/mercadopago/torneo/failure', [MercadoPagoController::class, 'failureTorneo'])->name('mercadopago.torneo.failure');
-    
+
     // Clases (NUEVO)
     Route::get('/mercadopago/clase/confirmar', [MercadoPagoController::class, 'confirmarClase'])->name('mercadopago.clase.confirmar');
     Route::get('/mercadopago/clase/failure', [MercadoPagoController::class, 'failureClase'])->name('mercadopago.clase.failure');

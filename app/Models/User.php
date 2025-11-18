@@ -17,7 +17,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        
+        'role', 
     ];
 
     /**
@@ -29,10 +29,9 @@ class User extends Authenticatable
     ];
 
     /**
-     * Seguridad
+     * Seguridad - REMOVER 'role' DE AQUÍ
      */
     protected $guarded = [
-        'role',
         'email_verified_at',
     ];
 
@@ -57,6 +56,11 @@ class User extends Authenticatable
     public function isCliente()
     {
         return $this->role === 'cliente';
+    }
+
+    public function isSocio()
+    {
+        return $this->role === 'socio';
     }
 
     // ============= RELACIONES =============
@@ -86,5 +90,11 @@ class User extends Authenticatable
     public function torneosOrganizados()
     {
         return $this->hasMany(Torneo::class, 'id_organizador');
+    }
+
+    //RELACIÓN CON SOLICITUDES DE MEMBRESÍA
+    public function solicitudesMembresia()
+    {
+        return $this->hasMany(SolicitudMembresia::class, 'user_id');
     }
 }

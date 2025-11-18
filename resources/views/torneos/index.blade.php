@@ -155,7 +155,6 @@
                                 <div class="alert alert-info">
                                     <i class="bi bi-info-circle me-2"></i>
                                     <strong>Información importante:</strong><br>
-                                    • La inscripción es gratuita<br>
                                     • Fecha límite: {{ date('d/m/Y', strtotime($torneo->fecha_limite_inscripcion ?? now())) }}<br>
                                     • Premio: ${{ number_format($torneo->premio ?? 500000, 0, ',', '.') }}<br>
                                     • Categoría: {{ ucfirst($torneo->categoria ?? 'General') }}

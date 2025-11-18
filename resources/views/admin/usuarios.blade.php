@@ -37,6 +37,7 @@
                             <th>ID</th>
                             <th>Nombre</th>
                             <th>Email</th>
+                            <th>Rol</th>
                             <th>Fecha Registro</th>
                             <th>Última Actividad</th>
                             <th>Acciones</th>
@@ -46,25 +47,60 @@
                         @forelse($usuarios as $usuario)
                         <tr>
                             <td><strong>#{{ $usuario->id }}</strong></td>
-                            <td>{{ $usuario->name }}</td>
+                            <td>
+                                {{ $usuario->name }}
+                                @if($usuario->role === 'socio')
+                                    <span class="badge bg-warning text-dark ms-1">
+                                        <i class="bi bi-star-fill"></i>
+                                @endif
+                                @if($usuario->role === 'profesor')
+                                    <span class="badge bg-info ms-1">
+                                        <i class="bi bi-mortarboard"></i>
+                                    </span>
+                                @endif
+                                @if($usuario->role === 'admin')
+                                    <span class="badge bg-danger ms-1">
+                                        <i class="bi bi-shield-fill"></i>
+                                    </span>
+                                @endif
+                            </td>
                             <td><small>{{ $usuario->email }}</small></td>
+                            <td>
+                                @switch($usuario->role)
+                                    @case('admin')
+                                        <span class="badge bg-danger">Administrador</span>
+                                        @break
+                                    @case('socio')
+                                        <span class="badge bg-warning text-dark">Socio</span>
+                                        @break
+                                    @case('profesor')
+                                        <span class="badge bg-info">Profesor</span>
+                                        @break
+                                    @default
+                                        <span class="badge bg-secondary">Cliente</span>
+                                @endswitch
+                            </td>
                             <td>{{ date('d/m/Y', strtotime($usuario->created_at)) }}</td>
                             <td>{{ date('d/m/Y H:i', strtotime($usuario->updated_at)) }}</td>
                             <td>
-                                <form method="POST" action="{{ route('admin.usuarios.eliminar', $usuario->id) }}"
-                                      class="d-inline"
-                                      onsubmit="return confirm('¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger">
-                                        <i class="bi bi-trash"></i> Eliminar
-                                    </button>
-                                </form>
+                                @if($usuario->role !== 'admin')
+                                    <form method="POST" action="{{ route('admin.usuarios.eliminar', $usuario->id) }}"
+                                          class="d-inline"
+                                          onsubmit="return confirm('¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i> Eliminar
+                                        </button>
+                                    </form>
+                                @else
+                                    <span class="text-muted small">Protegido</span>
+                                @endif
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
+                            <td colspan="7" class="text-center text-muted py-4">
                                 <i class="bi bi-inbox display-4 d-block mb-2"></i>
                                 No hay usuarios registrados
                             </td>

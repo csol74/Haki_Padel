@@ -54,10 +54,4 @@ class PagoController extends Controller
         return back()->with('error', 'El pago no se pudo completar. Intenta nuevamente.');
     }
 
-    public function exito($id)
-    {
-        $reserva = Reserva::findOrFail($id);
-        return view('reservas.exito', compact('reserva'));
-    }
-
 }

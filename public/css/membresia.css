@@ -1,0 +1,207 @@
+/* ===================================
+   ESTILOS PARA PÁGINA DE MEMBRESÍA
+   =================================== */
+
+.membresia-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding-bottom: 60px;
+}
+
+/* Header de membresía */
+.membresia-container h1 {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Card de socio activo */
+.socio-card {
+    border-radius: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.socio-card .card-body {
+    background: white;
+    border-radius: 20px;
+}
+
+.beneficios-activos .beneficio-item {
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.beneficios-activos .beneficio-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+/* Card de solicitud pendiente */
+.pendiente-card {
+    border-radius: 20px;
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+}
+
+.pendiente-card .card-body {
+    background: white;
+    border-radius: 20px;
+}
+
+/* Beneficios boxes */
+.beneficio-box {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 15px;
+    height: 100%;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.beneficio-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-color: #0d6efd;
+}
+
+.beneficio-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.beneficio-icon i {
+    font-size: 28px;
+}
+
+.beneficio-box h5 {
+    color: #2d3748;
+    margin-bottom: 10px;
+}
+
+/* Card de precio */
+.precio-card {
+    border-radius: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.precio-card .card-body {
+    background: white;
+    border-radius: 20px;
+}
+
+.precio-card .display-4 {
+    font-size: 3.5rem;
+}
+
+.ahorro-badge {
+    background: #ffeaa7;
+    color: #d63031;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+/* Botón de compra */
+.btn-success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    border: none;
+    font-weight: bold;
+    padding: 15px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(17, 153, 142, 0.3);
+}
+
+/* Accordion FAQ */
+.accordion-button {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #e7f3ff;
+    color: #0d6efd;
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: #0d6efd;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .precio-card {
+        position: static !important;
+    }
+
+    .membresia-container {
+        padding-bottom: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .membresia-container h1 {
+        font-size: 2rem;
+    }
+
+    .beneficio-box {
+        padding: 20px;
+    }
+
+    .precio-card .display-4 {
+        font-size: 2.5rem;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Badge de oferta */
+.badge {
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+/* Checkmarks de beneficios */
+.bi-check-circle-fill {
+    font-size: 1.2rem;
+}
+
+/* Sombras personalizadas */
+.shadow-lg {
+    box-shadow: 0 1rem 3rem rgba(0,0,0,0.175) !important;
+}
+
+/* Hover effects para cards */
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}

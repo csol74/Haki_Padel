@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         // Ejecutar los seeders en orden
         $this->call([
             AdminUserSeeder::class,  // Primero el admin
+            ProfesorSeeder::class,   // Luego los profesores
             CanchaSeeder::class,     // Luego las canchas
             TorneoSeeder::class,     // Finalmente los torneos
         ]);

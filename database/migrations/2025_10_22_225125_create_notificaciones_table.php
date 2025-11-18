@@ -13,7 +13,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->string('titulo', 150);
             $table->text('contenido');
-            $table->enum('tipo', ['reserva', 'torneo', 'clase', 'general'])->default('general');
+            $table->enum('tipo', ['reserva', 'torneo', 'clase', 'general','membresia'])->default('general');
             $table->boolean('leida')->default(false);
             $table->timestamps();
 

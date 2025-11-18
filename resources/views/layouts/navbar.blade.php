@@ -27,6 +27,12 @@
                    href="{{ route('torneos.index') }}">Torneos</a>
             </li>
             <li class="nav-item me-4">
+                <a class="nav-link {{ request()->routeIs('membresia.*') ? 'active text-success fw-bold' : 'text-white' }} position-relative"
+                   href="{{ route('membresia.index') }}">
+                    <i class="bi bi-star-fill me-1"></i>Membresía
+                </a>
+            </li>
+            <li class="nav-item me-4">
                 <a class="nav-link {{ request()->routeIs('contacto.index') ? 'active text-success fw-bold' : 'text-white' }}"
                    href="{{ route('contacto.index') }}">Contacto</a>
             </li>
@@ -35,11 +41,11 @@
 
     <div class="d-flex align-items-center">
 
-        {{-- 🔔 Notificaciones de reservas --}}
+        {{-- 🔔 Notificaciones de reservas y membresías --}}
         @php
             use App\Models\Notificacion;
             $notificaciones = Notificacion::where('user_id', Auth::id())
-                ->where('tipo', 'reserva')
+                ->whereIn('tipo', ['reserva', 'membresia'])
                 ->latest()
                 ->take(5)
                 ->get();
@@ -61,10 +67,15 @@
 
             <ul class="dropdown-menu dropdown-menu-end p-2 notificaciones-dropdown"
                 aria-labelledby="dropdownNotificaciones">
-                <h6 class="dropdown-header">Notificaciones de Reservas</h6>
+                <h6 class="dropdown-header">Notificaciones</h6>
                 <hr class="dropdown-divider">
                 @forelse($notificaciones as $notif)
                     <li class="dropdown-item {{ $notif->leida ? 'text-muted' : 'fw-bold' }}">
+                        @if($notif->tipo === 'membresia')
+                            <i class="bi bi-star-fill text-warning me-1"></i>
+                        @else
+                            <i class="bi bi-calendar-check text-primary me-1"></i>
+                        @endif
                         <strong>{{ $notif->titulo }}</strong><br>
                         <small>{{ $notif->contenido }}</small><br>
                         <small class="text-secondary">{{ $notif->created_at->diffForHumans() }}</small>
@@ -84,7 +95,22 @@
                 {{ strtoupper(substr(Auth::user()->lastname ?? '', 0, 1)) }}
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                <li>
+                    <div class="dropdown-header">
+                        {{ Auth::user()->name }}
+                        @if(Auth::user()->role === 'socio')
+                            <br><span class="badge bg-warning text-dark mt-1"><i class="bi bi-star-fill"></i> SOCIO</span>
+                        @endif
+                    </div>
+                </li>
+                <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="{{ route('profile.show') }}">Perfil</a></li>
+                @if(Auth::user()->role !== 'socio')
+                    <li><a class="dropdown-item text-warning" href="{{ route('membresia.index') }}">
+                        <i class="bi bi-star me-1"></i>Hacerse Socio
+                    </a></li>
+                @endif
+                <li><hr class="dropdown-divider"></li>
                 <li>
                     <form id="logout-form" action="{{ route('logout') }}" method="POST">
                         @csrf
